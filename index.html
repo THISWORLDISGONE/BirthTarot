@@ -416,7 +416,6 @@
           const CardDisplay = ({ icon, title, cardId, bgColor, textColor, borderColor, type, description, challenges }) => {
             if (cardId === null || cardId === undefined || !cardDetails[cardId]) return null;
             const details = cardDetails[cardId];
-            const [showMore, setShowMore] = useState(false);
             
             let displayDescription = description;
             if (type === 'soul') displayDescription = details.soulMission;
@@ -433,17 +432,13 @@
                   {cardId} - {details.name}
                 </div>
                 <p className={`text-sm font-semibold ${textColor} mb-2`}>{details.shortMeaning}</p>
-                <p className={`text-xs ${textColor} opacity-80 mb-2 ${showMore ? 'max-h-none' : 'max-h-10 overflow-hidden'}`}>{displayDescription}</p>
+                <p className={`text-xs ${textColor} opacity-80 mb-2`}>{displayDescription}</p>
                 
                 {challenges && (
-                   <p className={`text-xs ${textColor} opacity-70 mt-1 ${showMore ? 'max-h-none' : 'max-h-10 overflow-hidden'}`}>
+                   <p className={`text-xs ${textColor} opacity-70 mt-1`}>
                      <span className="font-semibold">挑戰：</span>{challenges}
                    </p>
                 )}
-
-                <button onClick={() => setShowMore(!showMore)} className={`text-xs ${textColor} hover:underline`}>
-                    {showMore ? '收合' : '展開更多'}
-                </button>
               </div>
             );
           };
