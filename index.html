@@ -25,7 +25,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, Fragment, useMemo } = React;
+        const { useState, Fragment, useMemo, useRef } = React;
 
         // --- SHARED ICON COMPONENTS ---
         const Calendar = () => <span>📅</span>;
@@ -118,7 +118,7 @@
             shortMeaning: '內省、尋求真理、智慧、指引與獨處',
             soulMission: '9號隱士的靈魂使命是透過深入的內在探索與反思，尋求並獲得深刻的智慧與真理，然後成為他人生命旅程中的指路明燈。您的靈魂渴望在獨處中與內在的導師連結。需要發展在孤獨中汲取智慧的能力，以及用溫和的方式分享洞見的靈性指導能力。',
             personalityTrait: '個性上，隱士展現出內省、沉靜、智慧且喜歡獨處的深度思考者特質。您不追求外在的喧囂，更傾向於探索事物的本質與意義。在心理層面，代表著對內在智慧的追尋、審慎的態度以及獨立思考的能力。您的天賦在於提供深刻的洞見與指導。',
-            challenges: '隱士的挑戰在於可能過度孤立自我，與社會脫節，或因過度沉思而變得悲觀、猶豫不前。有時可能因害怕被外界打擾而拒絕與人分享智慧，或因標準過高而顯得挑剔。需要學習在獨處與分享之間找到平衡，將內在的智慧應用於實際生活，並信任他人的成長過程。'
+            challenges: '隱士的挑戰在於可能過度孤立自我，與社會脫節，或因過度沉思而變得悲觀、猶豫不前。有時可能因害怕被外界打擾而拒絕與人分享智慧，或因標準過高而顯得挑剔。需要學習在獨處與分享之間找到平衡，將內在の智慧應用於實際生活，並信任他人的成長過程。'
           },
           10: {
             name: '命運之輪',
@@ -137,7 +137,7 @@
           12: {
             name: '倒吊人',
             shortMeaning: '犧牲、新視角、等待、臣服與頓悟',
-            soulMission: '12號倒吊人的靈魂渴望通過自願的犧牲、放下舊有觀念或暫時的停滯，來獲得更高層次的理解與靈性覺醒。您的生命目標是達到完全的臣服與接納，從而體驗到宇宙的智慧和內在的平靜。您的潛能是深度的耐心、超越常規的洞察力以及從逆境中轉化智慧的能力。',
+            soulMission: '12號倒吊人的靈魂渴望通過自願的犧牲、放下舊有觀念或暫時的停滯，來獲得更高層次的理解與靈性覺醒。您的生命目標是達到完全的臣服與接納，從从而體驗到宇宙的智慧和內在的平靜。您的潛能是深度的耐心、超越常規的洞察力以及從逆境中轉化智慧的能力。',
             personalityTrait: '個性特徵上，您深具耐心，善於反思，不畏懼從不同的角度看待事物，並且能夠在逆境和等待中成長。早期可能因為觀點獨特而感到與周圍格格不入，成熟後則可能成為具有非凡洞察力的精神導師或引路人，幫助他人看見新的可能性。',
             challenges: '倒吊人的挑戰在於可能陷入拖延、被動等待、自我犧牲到失去自我的境地，或發展出受害者心態。有時可能因過於沉浸在自己的世界而與現實脫節。需要學習區分必要的臣服與無謂的犧牲，並在等待的同時保持積極的內在探索，而非消極地停滯不前。'
           },
@@ -205,6 +205,43 @@
             challenges: '世界的挑戰在於在達到一個重要的里程碑後，可能難以開啟新的篇章，或因為過於追求完美而害怕行動。有時可能因為視野過於宏大而忽略了當下的細節，或在整合的過程中感到壓力。需要學習在每一個「完成」之後慶祝並適時放手，迎接新的循環，並理解圓滿是一個持續的、螺旋式上升的過程。'
           },
         };
+        
+        // --- 共享的計算函式 ---
+        const sharedSumDigits = (n) => {
+            if (typeof n !== 'number' && typeof n !== 'string') return 0;
+            return n.toString().split('').map(Number).reduce((a, b) => a + b, 0);
+        };
+
+        const sharedReduceToSingleDigit = (n) => {
+            let num = n;
+            while (num > 9) {
+                num = sharedSumDigits(num);
+            }
+            return num;
+        };
+
+        const sharedCalculateFortuneCards = (birthDate, targetYear, targetMonth) => {
+            if (!birthDate || !targetYear || !targetMonth) return { yearlyCard: null, monthlyCard: null };
+            
+            const [bYear, bMonth, bDay] = birthDate.split('-').map(Number);
+            const personalBase = sharedSumDigits(bYear) + bMonth + sharedSumDigits(bDay);
+            const yearlyValue = personalBase + sharedSumDigits(targetYear);
+            
+            let yearlyCardRaw = (yearlyValue > 0) ? (yearlyValue - 1) % 22 + 1 : 22;
+            if (yearlyCardRaw === 0) yearlyCardRaw = 22;
+            const yearlyCardId = yearlyCardRaw === 22 ? 0 : yearlyCardRaw;
+
+            const bDaySimplified = sharedReduceToSingleDigit(bDay);
+            const monthlyAdjustment = bMonth + bDaySimplified;
+            const monthlyValue = yearlyCardRaw + parseInt(targetMonth, 10) + monthlyAdjustment;
+
+            let monthlyCardRaw = (monthlyValue > 0) ? (monthlyValue - 1) % 22 + 1 : 22;
+            if (monthlyCardRaw === 0) monthlyCardRaw = 22;
+            const monthlyCardId = monthlyCardRaw === 22 ? 0 : monthlyCardRaw;
+            
+            return { yearlyCard: yearlyCardId, monthlyCard: monthlyCardId };
+        };
+
 
         // --- TAROT BIRTH CARDS CALCULATOR (Mary K. Greer System) ---
         const TarotBirthCardsCalculator = () => {
@@ -520,6 +557,10 @@
           const [person2Name, setPerson2Name] = useState('');
           const [result, setResult] = useState(null);
           const [showDetails, setShowDetails] = useState({ soul: false, personality: false, shadow: false, yearly: false, monthly: false });
+          
+          const [targetYear, setTargetYear] = useState(new Date().getFullYear());
+          const [targetMonth, setTargetMonth] = useState(new Date().getMonth() + 1);
+
 
           const compatibilityMatrix = {
             1: { 1: { score: 85, type: '雙重意志力', desc: '兩個1號魔術師相遇，代表著意志力、創造力和行動力的強強結合。這是一段充滿活力和創新潛能的關係，雙方都擁有將想法化為現實的強大能力，能夠共同發起並推動項目，快速取得進展。', challenges: '主要的挑戰在於「誰來主導？」。兩個強勢的個體可能產生權力鬥爭或競爭。需要有意識地協調目標，避免自我中心，並學會輪流領導或共同合作。如果溝通不良或缺乏共同願景，強大的能量可能會轉向內部衝突，而非外部創造。' }, 2: { score: 75, type: '行動與直覺', desc: '魔術師的行動力與女祭司的直覺洞察形成互補。魔術師能將女祭司的深層智慧化為實際行動，而女祭司則能為魔術師提供方向與深度。', challenges: '魔術師可能覺得女祭司過於被動或神秘，女祭司可能覺得魔術師太急躁或表面。需要耐心溝通，魔術師學習聆聽，女祭司學習表達。' }, 3: { score: 80, type: '創造與豐盛', desc: '魔術師的創造意志與女帝的豐饒能量結合，能共同創造出實質且美好的成果。魔術師提供方法，女帝提供滋養與資源。', challenges: '魔術師的目標導向可能與女帝的享受過程產生衝突。需平衡效率與享受，並確保創造的目標是雙方都認同的。' }, 4: { score: 70, type: '意志與結構', desc: '魔術師的創新能力與皇帝的組織結構相輔相成。魔術師帶來新點子，皇帝則能將其實現並制度化，建立穩固的基礎。', challenges: '魔術師可能覺得皇帝過於僵化，皇帝可能覺得魔術師不切實際。需要互相尊重對方的方法，魔術師學習務實，皇帝學習彈性。' }, 5: { score: 65, type: '創新與傳統', desc: '魔術師的個體創造力與教皇的傳統智慧形成有趣的對話。魔術師挑戰現狀，教皇提供經驗與道德框架。', challenges: '可能在方法論和價值觀上產生分歧。魔術師需要尊重智慧傳承，教皇需要對新方法保持開放，尋找融合點而非對立。' }, 6: {score:90,type:'創造性的愛',desc:'魔術師的創造力在戀人牌代表的愛與關係中能得到極大的滋養與發揮。他們共同做出選擇，創造充滿活力與和諧的關係，彼此激勵。', challenges:'魔術師的個人意志可能在關係選擇中過於強勢，或戀人牌的猶豫不決讓魔術師失去耐心。需要坦誠溝通各自的需求與價值觀，確保選擇是共同的。'}, 7: {score:85,type:'意志的推進力',desc:'魔術師的意志與戰車的決心結合，形成一股強大的前進動力。他們能共同設定目標並勇往直前，克服障礙，取得成功。', challenges:'兩者都非常強勢，若方向不一致，很容易產生衝突或競爭。需要明確的共同目標，並學會協調步伐，避免一方拖垮另一方。'}, 8: {score:80,type:'意志與內力',desc:'魔術師的外在顯化能力與力量牌的內在堅韌相結合，能以一種平衡的方式達成目標。魔術師帶來方法，力量牌帶來耐心與慈悲。', challenges:'魔術師的急切可能與力量牌的徐緩產生摩擦。魔術師需學習內在力量的柔韌，力量牌需學習更主動地運用能力。'}, 9: {score:60,type:'行動與內省',desc:'魔術師的外向行動與隱士的內向反思形成鮮明對比，但也可能互補。隱士的智慧能指引魔術師的行動，魔術師能將隱士的洞見付諸實踐。', challenges:'生活節奏和溝通方式差異大。魔術師可能覺得隱士太孤僻，隱士可能覺得魔術師太喧囂。需要尊重彼此的空間與需求。'}, 10:{score:85,type:'創造機遇',desc:'魔術師的顯化能力與命運之輪的機遇完美結合。魔術師能主動創造並抓住命運之輪帶來的機會，共同駕馭生命的流動。', challenges:'魔術師可能試圖掌控命運之輪的不可預測性，而命運之輪的變化可能打亂魔術師的計劃。學習在變化中保持彈性與信任是關鍵。'}, 11:{score:70,type:'意志與公正',desc:'魔術師的行動力需要正義牌的清晰判斷與平衡。正義能確保魔術師的創造是基於公平和真理的。', challenges:'魔術師的靈活性可能與正義的原則性產生衝突。正義的嚴謹可能讓魔術師感到受限。需要找到原則與彈性的平衡點。'}, 12:{score:65,type:'行動與臣服',desc:'魔術師的主動創造與倒吊人的被動臣服形成強烈對比。倒吊人的新視角可以啟發魔術師，魔術師可以幫助倒吊人走出停滯。', challenges:'魔術師可能不理解倒吊人的「無為」，倒吊人可能抗拒魔術師的催促。學習在適當的時候行動，在適當的時候等待與反思。'}, 13:{score:75,type:'創造與轉化',desc:'魔術師的創造力與死神的轉化力量結合，能帶來深刻的改變與新生。他們能共同結束舊模式，開創新局面。', challenges:'魔術師可能害怕死神帶來的徹底改變，死神的直接可能讓魔術師感到失控。需要勇氣去面對結束，並信任之後的新生。'}, 14:{score:80,type:'顯化與調和',desc:'魔術師的顯化能力與節制牌的調和藝術能創造出平衡且持久的成果。他們善於整合不同元素，創造和諧。', challenges:'魔術師的專注目標可能與節制的尋求多方平衡有所不同。需要耐心協商，確保行動既有效率又具包容性。'}, 15:{score:70,type:'意志與慾望',desc:'魔術師的意志力與惡魔牌的原始慾望相遇，可能爆發強大的創造力，也可能陷入束縛。關鍵在於如何引導這股能量。', challenges:'惡魔的誘惑可能讓魔術師誤用能力，或雙方陷入不健康的依賴。需要高度的自我覺察，將激情導向正面，避免沉溺。'}, 16:{score:75,type:'創造性突破',desc:'魔術師的創造力與塔的顛覆性能量結合，能帶來革命性的突破和舊有結構的瓦解，為新事物騰出空間。', challenges:'塔的突變可能打亂魔術師的計劃，甚至摧毀其成果。魔術師需學會在混亂中保持彈性，並將危機視為重建的機會。'}, 17:{score:85,type:'顯化希望',desc:'魔術師的實現能力與星星的希望靈感相結合，能將美好的願景化為現實，為自己和他人帶來光明。', challenges:'星星的理想主義可能讓魔術師的實際操作遇到困難。需要平衡夢想與現實，將希望落實於具體行動。'}, 18:{score:70,type:'意識與潛意識',desc:'魔術師的清晰意識與月亮的模糊潛意識相遇，是一場探索內在迷霧的旅程。月亮的直覺能豐富魔術師的創造，魔術師的理性有助於釐清幻象。', challenges:'月亮的幻象和恐懼可能干擾魔術師的專注力。魔術師的邏輯可能難以理解月亮的非理性。需要信任直覺，同時保持分辨能力。'}, 19:{score:90,type:'光輝創造',desc:'魔術師的創造力在太陽的光明照耀下得以充分展現。他們能共同創造充滿喜悅、成功和活力的成果，散發正能量。', challenges:'兩者都可能比較自我中心。魔術師需要確保其創造服務於太陽的整體福祉，太陽的強光不要灼傷魔術師的個別性。'}, 20:{score:80,type:'意志的覺醒',desc:'魔術師的顯化能力與審判的覺醒召喚結合，能共同響應生命的更高目的，實現深刻的轉化和人生目標的重新定義。', challenges:'審判的自我評估可能讓魔術師對過去的創造產生懷疑。魔術師需要將其能力導向新的、更有意義的方向，而非執著舊有。'}, 21:{score:85,type:'完成的創造',desc:'魔術師的創造力與世界的圓滿達成相輔相成。他們能將理念完美地實現，體驗到成就感和宇宙的合一。', challenges:'世界牌的完成感可能讓魔術師感到下一步無事可做。需要理解完成也是新循環的開始，魔術師的創造力永無止境。'}},
@@ -534,7 +575,7 @@
                              if (i === j) {
                                 matrix[i][j] = {score: 80, type: `同頻共振 (${cardDetails[i]?.name})`, desc: `兩個 ${cardDetails[i]?.name} 相遇，${cardDetails[i]?.shortMeaning} 的能量加倍。這可能帶來強大的協同效應，但也可能放大該牌的挑戰。`, challenges: `共同的盲點可能被忽略。需要有意識地覺察並平衡 ${cardDetails[i]?.name} 的極端表現。例如，${cardDetails[i]?.challenges}`};
                             } else {
-                                matrix[i][j] = {score: 70, type: `互補學習 (${cardDetails[i]?.name} & ${cardDetails[j]?.name})`, desc: `${cardDetails[i]?.name} 的 ${cardDetails[i]?.shortMeaning.split('、')[0]} 與 ${cardDetails[j]?.name} 的 ${cardDetails[j]?.shortMeaning.split('、')[0]} 相互作用，提供學習與成長的機會。`, challenges: `雙方需理解並尊重彼此的差異。 ${cardDetails[i]?.name} 的挑戰 (${cardDetails[i]?.challenges.split('。')[0]}) 可能與 ${cardDetails[j]?.name} 的挑戰 (${cardDetails[j]?.challenges.split('。')[0]}) 相互作用，需要耐心溝通。`};
+                                matrix[i][j] = {score: 70, type: `互補學習 (${cardDetails[i]?.name} & ${cardDetails[j]?.name})`, desc: `${cardDetails[i]?.name} 的 ${cardDetails[i]?.shortMeaning.split('、')[0]} 與 ${cardDetails[j]?.name} の ${cardDetails[j]?.shortMeaning.split('、')[0]} 相互作用，提供學習與成長的機會。`, challenges: `雙方需理解並尊重彼此的差異。 ${cardDetails[i]?.name} 的挑戰 (${cardDetails[i]?.challenges.split('。')[0]}) 可能與 ${cardDetails[j]?.name} 的挑戰 (${cardDetails[j]?.challenges.split('。')[0]}) 相互作用，需要耐心溝通。`};
                             }
                         }
                     }
@@ -566,45 +607,13 @@
 
             return { soulCard, personalityCard, shadowCard: compShadowCard };
           };
-          
-          const sumDigits = (n) => {
-            return n.toString().split('').map(Number).reduce((a, b) => a + b, 0);
-          };
-          const reduceToSingleDigit = (n) => {
-            let num = n;
-            while (num > 9) {
-              num = sumDigits(num);
-            }
-            return num;
-          };
-          const calculateFortuneCards = (birthDate, targetYear, targetMonth) => {
-              if (!birthDate) return { yearlyCard: null, monthlyCard: null };
-              const [bYear, bMonth, bDay] = birthDate.split('-').map(Number);
-              
-              const personalBase = sumDigits(bYear) + bMonth + sumDigits(bDay);
-              const yearlyValue = personalBase + sumDigits(targetYear);
-              let yearlyCardRaw = (yearlyValue > 0) ? (yearlyValue - 1) % 22 + 1 : 22;
-              if (yearlyCardRaw === 0) yearlyCardRaw = 22;
-              const yearlyCardId = yearlyCardRaw === 22 ? 0 : yearlyCardRaw;
-
-              const bDaySimplified = reduceToSingleDigit(bDay);
-              const monthlyAdjustment = bMonth + bDaySimplified;
-              const monthlyValue = yearlyCardRaw + parseInt(targetMonth, 10) + monthlyAdjustment;
-              let monthlyCardRaw = (monthlyValue > 0) ? (monthlyValue - 1) % 22 + 1 : 22;
-              if (monthlyCardRaw === 0) monthlyCardRaw = 22;
-              const monthlyCardId = monthlyCardRaw === 22 ? 0 : monthlyCardRaw;
-              
-              return { yearlyCard: yearlyCardId, monthlyCard: monthlyCardId };
-          };
 
           const getCompatibility = (card1, card2) => {
             if (card1 === null || card2 === null) return { score: 0, type: '資訊不足', desc: '無法計算，因為缺少一方或雙方的牌卡資訊。', challenges: '' };
             
-            // --- FIX: Changed const to let ---
             let c1 = card1 === 22 ? 0 : card1; 
             let c2 = card2 === 22 ? 0 : card2;
             
-            // This reassignment is now valid
             if (c1 > c2) [c1, c2] = [c2, c1]; 
 
             if (fullCompatibilityMatrix[c1] && fullCompatibilityMatrix[c1][c2]) {
@@ -627,15 +636,12 @@
           const handleAnalyze = () => {
             if (!person1Date || !person2Date || !person1Name || !person2Name) { alert('請填寫所有資訊'); return; }
             
-            const now = new Date();
-            const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth() + 1;
-
             const person1Cards = calculatePersonTarotCards(person1Date);
             const person2Cards = calculatePersonTarotCards(person2Date);
 
-            const person1FortuneCards = calculateFortuneCards(person1Date, currentYear, currentMonth);
-            const person2FortuneCards = calculateFortuneCards(person2Date, currentYear, currentMonth);
+            // 使用選擇的年月進行計算
+            const person1FortuneCards = sharedCalculateFortuneCards(person1Date, targetYear, targetMonth);
+            const person2FortuneCards = sharedCalculateFortuneCards(person2Date, targetYear, targetMonth);
             
             const soulCompatibility = getCompatibility(person1Cards.soulCard, person2Cards.soulCard);
             const personalityCompatibility = getCompatibility(person1Cards.personalityCard, person2Cards.personalityCard);
@@ -656,7 +662,7 @@
                     monthly: monthlyCompatibility,
                     overall 
                 },
-                timeframe: { year: currentYear, month: currentMonth }
+                timeframe: { year: targetYear, month: targetMonth }
             });
             setShowDetails({ soul: false, personality: false, shadow: false, yearly: false, monthly: false });
           };
@@ -667,11 +673,38 @@
           return (
             <div className="max-w-4xl mx-auto p-4 sm:p-6 bg-gradient-to-br from-purple-100 via-pink-100 to-indigo-100 rounded-xl shadow-xl font-sans">
               <div className="text-center mb-8"><h1 className="text-3xl font-bold text-purple-800 mb-2 flex items-center justify-center gap-2"><HeartIcon className="w-8 h-8" />塔羅牌雙人兼容性深度分析</h1><p className="text-gray-600">依據塔羅原型互動，深入分析兩人的靈魂契合度、個性相容性與共同成長潛力</p></div>
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-white rounded-lg p-6 shadow-md"><h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><UsersIcon className="w-5 h-5" /> 第一位夥伴</h3><input type="text" placeholder="姓名/暱稱" value={person1Name} onChange={(e) => setPerson1Name(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md mb-3 focus:ring-2 focus:ring-purple-500"/><input type="date" value={person1Date} onChange={(e) => setPerson1Date(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/></div>
-                <div className="bg-white rounded-lg p-6 shadow-md"><h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><UsersIcon className="w-5 h-5" /> 第二位夥伴</h3><input type="text" placeholder="姓名/暱稱" value={person2Name} onChange={(e) => setPerson2Name(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md mb-3 focus:ring-2 focus:ring-purple-500"/><input type="date" value={person2Date} onChange={(e) => setPerson2Date(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/></div>
+              
+              <div className="bg-white rounded-lg p-6 shadow-md mb-6">
+                <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-gray-800 flex items-center gap-2"><UsersIcon className="w-5 h-5" /> 第一位夥伴</h3>
+                        <input type="text" placeholder="姓名/暱稱" value={person1Name} onChange={(e) => setPerson1Name(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
+                        <input type="date" value={person1Date} onChange={(e) => setPerson1Date(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
+                    </div>
+                    <div className="space-y-4">
+                        <h3 className="font-semibold text-gray-800 flex items-center gap-2"><UsersIcon className="w-5 h-5" /> 第二位夥伴</h3>
+                        <input type="text" placeholder="姓名/暱稱" value={person2Name} onChange={(e) => setPerson2Name(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
+                        <input type="date" value={person2Date} onChange={(e) => setPerson2Date(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
+                    </div>
+                    <div className="md:col-span-2 border-t pt-6">
+                        <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><ClockIcon/> 選擇分析時點（用於流年流月互動）</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">年份</label>
+                                <input type="number" value={targetYear} onChange={(e) => setTargetYear(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">月份</label>
+                                <select value={targetMonth} onChange={(e) => setTargetMonth(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 bg-white">
+                                    {[...Array(12).keys()].map(i => <option key={i+1} value={i+1}>{i+1}月</option>)}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
               </div>
               <button onClick={handleAnalyze} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-md hover:from-purple-700 hover:to-pink-700 transition-colors font-semibold"><Sparkles className="inline-block w-4 h-4 mr-1" /> 分析兼容性 <Sparkles className="inline-block w-4 h-4 ml-1" /></button>
+              
               {result && (
                 <div className="mt-8 space-y-6 animate-fade-in">
                   <div className="grid md:grid-cols-2 gap-6">
@@ -712,12 +745,11 @@
                     ))}
                   </div>
 
-                  {/* --- NEW SECTION FOR FORTUNE CARDS --- */}
                   <div className="bg-gradient-to-r from-indigo-100 to-blue-100 rounded-lg p-6 shadow-lg mt-6">
                     <h3 className="text-xl sm:text-2xl font-bold text-indigo-800 mb-2 text-center flex items-center justify-center gap-2">
                         <ClockIcon /> 當前時運互動分析 ({result.timeframe.year}年{result.timeframe.month}月)
                     </h3>
-                    <p className="text-center text-sm text-gray-600 max-w-2xl mx-auto">此部分分析您們在當前時間週期下的能量互動，提供順勢而為的指引。這與天生牌組的影響不同，屬於短期、動態的能量流。</p>
+                    <p className="text-center text-sm text-gray-600 max-w-2xl mx-auto">此部分分析您們在您所選時間週期下的能量互動，提供順勢而為的指引。這與天生牌組的影響不同，屬於短期、動態的能量流。</p>
                   </div>
                    <div className="space-y-4">
                      {[{ key: 'yearly', title: `年度能量共振 (${result.timeframe.year}年運牌)`, icon: <SunIcon className="w-5 h-5 text-yellow-600" />, cards: [result.person1.fortuneCards.yearlyCard, result.person2.fortuneCards.yearlyCard], info: `年運牌揭示了兩人在 ${result.timeframe.year} 年共同面對的宏觀主題、學習課題與發展機遇。這反映了你們在這一整年中的能量基調是和諧共振還是需要磨合。`},{ key: 'monthly', title: `月度主題互動 (${result.timeframe.month}月運牌)`, icon: <MoonIcon className="w-5 h-5 text-blue-600" />, cards: [result.person1.fortuneCards.monthlyCard, result.person2.fortuneCards.monthlyCard], info: `月運牌則聚焦於 ${result.timeframe.month} 月的具體能量流動。它顯示了在年度大主題下，本月您們的互動模式、情緒焦點以及可能遇到的短期事件或挑戰。` }].map(item => (
@@ -748,18 +780,6 @@
           const [showProcess, setShowProcess] = useState(false);
           const [showInfo, setShowInfo] = useState(false);
 
-          const sumDigits = (n) => {
-            return n.toString().split('').map(Number).reduce((a, b) => a + b, 0);
-          };
-
-          const reduceToSingleDigit = (n) => {
-            let num = n;
-            while (num > 9) {
-              num = sumDigits(num);
-            }
-            return num;
-          };
-
           const handleCalculate = () => {
             if (!birthDate) {
               alert('請輸入您的出生日期');
@@ -771,15 +791,15 @@
 
             // --- Yearly Card Calculation ---
             const yearlySteps = [];
-            const bYearSum = sumDigits(bYear);
-            const bDaySum = sumDigits(bDay);
+            const bYearSum = sharedSumDigits(bYear);
+            const bDaySum = sharedSumDigits(bDay);
             yearlySteps.push(`出生年各位數字之和: ${bYear.toString().split('').join(' + ')} = ${bYearSum}`);
             yearlySteps.push(`出生日各位數字之和: ${bDay.toString().split('').join(' + ')} = ${bDaySum}`);
             
             const personalBase = bYearSum + bMonth + bDaySum;
             yearlySteps.push(`個人基數 = (年和) + (月) + (日和) = ${bYearSum} + ${bMonth} + ${bDaySum} = ${personalBase}`);
 
-            const targetYearSum = sumDigits(targetYear);
+            const targetYearSum = sharedSumDigits(targetYear);
             yearlySteps.push(`目標年份數字之和: ${targetYear.toString().split('').join(' + ')} = ${targetYearSum}`);
             
             const yearlyValue = personalBase + targetYearSum;
@@ -795,7 +815,7 @@
             const monthlySteps = [];
             monthlySteps.push(`從年運卡數值開始: ${yearlyCardRaw}`);
 
-            const bDaySimplified = reduceToSingleDigit(bDay);
+            const bDaySimplified = sharedReduceToSingleDigit(bDay);
             monthlySteps.push(`出生日化簡值: ${bDay} -> ${bDay.toString().split('').join('+')} -> ... -> ${bDaySimplified}`);
             
             const monthlyAdjustment = bMonth + bDaySimplified;
@@ -832,11 +852,11 @@
 
                 <section>
                     <h3 className="text-xl font-semibold text-purple-700 mb-2">年運卡計算方法</h3>
-                    <p className="mb-2">此計算器採用基於「個人基數」的詳細步驟法：</p>
+                    <p className="mb-2">此計算器採用基於「個人基數」の詳細步驟法：</p>
                     <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-800 space-y-2">
                         <p><strong>第一步：計算個人基數</strong><br/><code>個人基數 = (出生年各位數字之和) + (出生月) + (出生日各位數字之和)</code></p>
                         <p><strong>第二步：結合目標年份</strong><br/><code>年運數值 = 個人基數 + (目標年份各位數字之和)</code></p>
-                        <p><strong>第三步：化簡至塔羅範圍 (1-22)</strong><br/><code>年運卡數值 = (年運數值 - 1) % 22 + 1</code><br/><span className="text-xs">(若結果為0，則視為22，對應愚者牌0號)</span></p>
+                        <p><strong>第三步：化簡至塔羅範圍 (1-22)</strong><br/><code>年運卡數值 = (年運數值 - 1) % 22 + 1</code><br/><span className="text-xs">(若結果為0或22，則對應愚者牌0號)</span></p>
                     </div>
                 </section>
 
@@ -845,7 +865,7 @@
                     <div className="bg-green-50 rounded-lg p-4 text-sm text-green-800 space-y-2">
                         <p><strong>第一步：獲得年運卡數值</strong><br/><span>使用上述方法計算出的年運卡號碼（1-22）。</span></p>
                         <p><strong>第二步：計算月份調整值</strong><br/><code>個人月份調整值 = (出生月) + (出生日化簡值)</code><br/><span className="text-xs">(出生日化簡值 = 將生日的數字相加，直到變為個位數)</span></p>
-                        <p><strong>第三步：結合目標月份</strong><br/><code>月運數值 = 年運卡數值 + 目標月份 + 個人月份調整值</code><br/><code>月運卡數值 = (月運數值 - 1) % 22 + 1</code><br/><span className="text-xs">(同樣，若結果為0，則視為22，對應愚者牌0號)</span></p>
+                        <p><strong>第三步：結合目標月份</strong><br/><code>月運數值 = 年運卡數值 + 目標月份 + 個人月份調整值</code><br/><code>月運卡數值 = (月運數值 - 1) % 22 + 1</code><br/><span className="text-xs">(同樣，若結果為0或22，則對應愚者牌0號)</span></p>
                     </div>
                 </section>
                 
@@ -1025,7 +1045,6 @@
           );
         };
         
-        // --- FIX: Updated to React 18 createRoot API ---
         const container = document.getElementById('root');
         const root = ReactDOM.createRoot(container);
         root.render(<App />);
