@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>塔羅生命靈數與兼容性計算器</title>
+    <title>塔羅生命靈數與運勢計算器</title>
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -25,7 +25,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, Fragment } = React;
+        const { useState, Fragment, useMemo } = React;
 
         // --- SHARED ICON COMPONENTS ---
         const Calendar = () => <span>📅</span>;
@@ -37,14 +37,16 @@
         const ChevronUp = ({ className }) => <span className={className}>▲</span>;
         const Gift = ({ className }) => <span className={className}>🎁</span>;
         const Shield = ({ className }) => <span className={className}>🛡️</span>;
-        // Icons for Compatibility Calculator
         const HeartIcon = ({ className }) => <span className={className}>💖</span>;
         const UsersIcon = ({ className }) => <span className={className}>👥</span>;
         const MoonIcon = ({ className }) => <span className={className}>🌙</span>;
         const StarIcon = ({ className }) => <span className={className}>⭐</span>;
         const AlertCircleIcon = ({ className }) => <span className={className}>⚠️</span>;
         const InfoIcon = ({ className }) => <span className={className}>ℹ️</span>;
-        const BrainIcon = () => <span>🧠</span>; // For challenges
+        const BrainIcon = () => <span>🧠</span>;
+        const ClockIcon = () => <span>🕰️</span>;
+        const SunIcon = () => <span>☀️</span>;
+        const TargetIcon = () => <span>🎯</span>;
 
         // --- SHARED CARD DETAILS ---
         const cardDetails = {
@@ -73,7 +75,7 @@
             name: '女帝',
             shortMeaning: '豐饒、母性、創造、滋養與感官享受',
             soulMission: '3號女帝的靈魂使命是學習無條件的愛與創造，成為生命力、豐盛與美的管道。您的靈魂渴望體驗並分享生活中的喜悅與美好，滋養自己與他人，並與大自然和諧共處。內在潛能是源源不絕的創造力、強大的療癒能量以及與萬物生長的深度連結。',
-            personalityTrait: '個性上，女帝展現出溫暖、關愛、慷慨且富有創造力的照顧者特質。您熱愛美好事物，享受感官體驗，並具有將事物變得更美好的天賦。在心理層面，象徵創造力、無條件的愛、以及接納與包容。您擅長營造和諧舒適的環境，並能自然地吸引豐盛。',
+            personalityTrait: '個性上，女帝展現出溫暖、關愛、慷慨且富有創造力的照顧者特質。您熱愛美好事物，享受感官體驗，並具有將事物變得更美好的天賦。在心理層面，象徵創造力、無條件的愛、以及接納與包容。您擅長營造和諧舒適的環境，并能自然地吸引豐盛。',
             challenges: '女帝的挑戰在於可能過度沉溺於物質享受、過度保護或控制所愛的人，或因情感氾濫而缺乏邊界感。有時可能在付出與接受之間失衡，或因害怕匱乏而緊抓不放。需要學習設定健康的界線，平衡自我照顧與照顧他人，並將創造力導向建設性的方向，避免懶散或過度放縱。'
           },
           4: {
@@ -296,99 +298,74 @@
               let introduction = '';
               let cardsAnalysis = [];
               let dynamicsAnalysis = '';
-              let developmentalFocus = ''; // New section for developmental focus / challenges
+              let developmentalFocus = '';
               
               const getCardName = (id) => cardDetails[id]?.name || '未知卡牌';
               const getCardChallenges = (id) => cardDetails[id]?.challenges || '請參閱卡牌詳細說明。';
 
               if (giftCard !== null) { // 太陽特殊三重牌組 (19)
                   introduction = `您的生命牌卡組合是極其罕見且強大的「太陽三重奏」：${getCardName(soulCard)}(${soulCard}) → ${getCardName(personalityCard)}(${personalityCard}) → ${getCardName(giftCard)}(${giftCard})。這是一個動態的創造循環，象徵您天生擁有將夢想轉化為現實的非凡能力，是宇宙能量的顯化通道。`;
-                  
                   cardsAnalysis = [
                       { cardId: soulCard, role: '主題牌：太陽 - 光輝實現與生命喜悅', roleKey: 'soul' },
                       { cardId: personalityCard, role: '過程牌：命運之輪 - 把握宇宙時機與資源流動', roleKey: 'personality' },
                       { cardId: giftCard, role: '動力牌：魔術師 - 個人意志與創造力的主動運用', roleKey: 'gift' }
                   ];
-                  
                   dynamicsAnalysis = `在您的太陽三重奏中，${getCardName(giftCard)} (${giftCard})是「點火器」，代表您個人意志和創造衝動的源頭；${getCardName(personalityCard)} (${personalityCard})是「放大器」與「催化劑」，為您接引宇宙的機遇和資源；${getCardName(soulCard)} (${soulCard})是「展現台」，將您的創造成果以最光輝的形式展現給世界。這個循環是 1 → 10 → 19 (1+0=1 魔術師的意志 → 10 命運之輪的機遇 → 19 太陽的成果)。`;
                   developmentalFocus = `此組合的挑戰在於有意識地協調這三股強大能量，讓它們形成一個和諧的創造循環，而非各自為政或過度消耗。關鍵在於：\n1. ${getCardName(giftCard)}: 清晰您的意圖與目標 (${getCardChallenges(giftCard)})\n2. ${getCardName(personalityCard)}: 信任宇宙的安排並順應變化 (${getCardChallenges(personalityCard)})\n3. ${getCardName(soulCard)}: 樂觀自信地展現成果並分享喜悅 (${getCardChallenges(soulCard)})。避免因能量過強而忽略過程中的細節與他人的感受。`;
-
               } else if (shadowCard === null) { // 統一型 (1-9)
                   introduction = `您是極其特殊的「統一型」人格 - 靈魂牌與個性牌均為 ${soulCard} 號「${getCardName(soulCard)}」。這意味著您的內在本質與外在表現高度統一，人生課題異常集中和強烈。您此生的所有學習、挑戰與天賦都聚焦在這一張牌的深層奧義中。`;
-                  
-                  cardsAnalysis = [
-                      { cardId: soulCard, role: '核心原型：您的存在本質與表達方式', roleKey: 'soul' }
-                  ];
-                  
+                  cardsAnalysis = [{ cardId: soulCard, role: '核心原型：您的存在本質與表達方式', roleKey: 'soul' }];
                   dynamicsAnalysis = `作為統一型，您的內外能量完全集中在 ${getCardName(soulCard)} 的原型上。這賦予您巨大的專注力和潛能，但也可能讓您更容易陷入該牌的極端表現或盲點中。`;
                   developmentalFocus = `您的成長關鍵在於對 ${getCardName(soulCard)} 的能量進行深度覺察，有意識地平衡其天賦與挑戰面。請特別關注 ${getCardName(soulCard)} 的挑戰：${getCardChallenges(soulCard)}。學會駕馭此原型能量，既體現其所有光明面，又能整合其陰影，以達到該原型的最高表達，避免其負面特質過度顯現。`;
-                  
               } else { // 標準雙牌組 + 陰影牌 (10-18, 20, 21)
                   introduction = `您的生命牌卡構成一個完整的三維學習藍圖：靈魂牌「${getCardName(soulCard)}」(${soulCard})定義了您的核心使命和最高潛能；個性牌「${getCardName(personalityCard)}」(${personalityCard})是您今生需要掌握的主要課題和外在表達方式；而陰影牌「${getCardName(shadowCard)}」(${shadowCard})則揭示了前兩張牌之間的潛在張力、您需要整合的深層挑戰與隱藏力量。`;
-                  
                   cardsAnalysis = [
                       { cardId: soulCard, role: '靈魂牌：您永恆的本質與最高使命', roleKey: 'soul' },
                       { cardId: personalityCard, role: '個性牌：您今生的學習課題與展現', roleKey: 'personality' },
                       { cardId: shadowCard, role: '陰影牌：需要整合的內在動力與挑戰', roleKey: 'shadow' }
                   ];
-                  
                   dynamicsAnalysis = `您的生命藍圖中，${getCardName(personalityCard)} (${personalityCard}) 是您實踐 ${getCardName(soulCard)} (${soulCard}) 使命的主要途徑。然而，${getCardName(shadowCard)} (${shadowCard}) 代表了在這個過程中可能出現的內在衝突、恐懼或未被看見的潛能。它既是挑戰，也是整合靈魂與個性的關鍵橋樑。`;
                   developmentalFocus = `核心課題在於有意識地覺察並整合 ${getCardName(shadowCard)} 所代表的能量。其挑戰為：${getCardChallenges(shadowCard)}。\n當您試圖用 ${getCardName(personalityCard)} 的特質（挑戰：${getCardChallenges(personalityCard)}）去過度補償或逃避 ${getCardName(shadowCard)} 的課題時，能量易失衡。\n反之，若能擁抱並轉化 ${getCardName(shadowCard)} 的陰影面，您的靈魂使命（${getCardName(soulCard)}，挑戰：${getCardChallenges(soulCard)}）將更自然、強大地透過您的個性表達出來。這個整合過程是您此生持續的功課。`;
               }
-              
               return { introduction, cardsAnalysis, dynamicsAnalysis, developmentalFocus, cardSet };
           };
-
 
           const calculateTarotCards = (date) => {
             const digits = date.replace(/-/g, '').split('').map(Number);
             let total = digits.reduce((sum, digit) => sum + digit, 0);
             const steps = [`出生年月日數字相加: ${digits.join(' + ')} = ${total}`];
-
             while (total > 21) {
               const newDigits = total.toString().split('').map(Number);
               const newTotal = newDigits.reduce((sum, digit) => sum + digit, 0);
               steps.push(`總和 > 21，繼續相加: ${newDigits.join(' + ')} = ${newTotal}`);
               total = newTotal;
             }
-
             const soulCard = total;
             let personalityCard = null;
-            let shadowCard = null; // Used for standard double-deck
-            let giftCard = null; // Used for Sun's triple deck
-            
+            let shadowCard = null;
+            let giftCard = null;
             const getCardName = (id) => cardDetails[id]?.name || '未知卡牌';
-
             if (soulCard >= 10) {
               const personalityDigits = soulCard.toString().split('').map(Number);
               personalityCard = personalityDigits.reduce((sum, digit) => sum + digit, 0);
-              
-              if (soulCard === 19) { // Sun card - special case
-                // Personality card is 1+9 = 10 (Wheel of Fortune)
-                // Gift card (third card in sequence) is 1+0 = 1 (Magician)
+              if (soulCard === 19) {
                 giftCard = personalityCard.toString().split('').map(Number).reduce((s,d)=>s+d,0); 
                 steps.push(`靈魂卡牌為 19 (${getCardName(19)})，形成特殊太陽三重牌組。`);
                 steps.push(`個性/過程牌: 1 + 9 = ${personalityCard} (${getCardName(personalityCard)})`);
                 steps.push(`天賦/動力牌: 1 + 0 = ${giftCard} (${getCardName(giftCard)})`);
-                // No shadow card in this system for 19.
-              } else { // Standard double-deck (10-18, 20, 21)
+              } else {
                 personalityCard = soulCard.toString().split('').map(Number).reduce((sum, digit) => sum + digit, 0);
-                 if (personalityCard > 9) { // e.g. if Soul Card is 19 -> Pers 10. Then Pers Card again needs to be sum of digits 1+0=1. But this logic is typically not for Personality, it's more for next level reduction. Mary Greer's primary method for personality card IS sum of digits of soul card if soul card > 9.
-                    // For the shadow card context: soulCard - personalityCard.
-                    // E.g. Soul=15 (Devil), Personality = 1+5=6 (Lovers). Shadow=15-6=9 (Hermit). This is standard.
-                }
                 shadowCard = soulCard - personalityCard;
                 steps.push(`靈魂卡牌為 ${soulCard} (${getCardName(soulCard)})。`);
                 steps.push(`個性卡牌: ${soulCard.toString().split('').join(' + ')} = ${personalityCard} (${getCardName(personalityCard)})`);
                 steps.push(`陰影牌: ${soulCard} - ${personalityCard} = ${shadowCard} (${getCardName(shadowCard)})`);
               }
-            } else { // Single digit soul card (1-9)
-              personalityCard = soulCard; // Soul and Personality card are the same
+            } else {
+              personalityCard = soulCard;
               steps.push(`靈魂卡牌為個位數 ${soulCard} (${getCardName(soulCard)})。`);
               steps.push(`個性卡牌與其相同: ${personalityCard} (${getCardName(personalityCard)})。`);
               steps.push(`此為統一型，無額外陰影牌或天賦牌。`);
             }
-
             return { soulCard, personalityCard, shadowCard, giftCard, steps };
           };
 
@@ -399,10 +376,8 @@
             }
             const cardSet = calculateTarotCards(birthDate);
             setResult(cardSet);
-            
             const report = generateDetailedTarotReport(cardSet);
             setDetailedReport(report);
-            
             setShowProcess(false);
             setViewMode('simple'); 
           };
@@ -416,92 +391,54 @@
           const CardDisplay = ({ icon, title, cardId, bgColor, textColor, borderColor, type, description, challenges }) => {
             if (cardId === null || cardId === undefined || !cardDetails[cardId]) return null;
             const details = cardDetails[cardId];
-            const [showMore, setShowMore] = useState(false);
-            
             let displayDescription = description;
             if (type === 'soul') displayDescription = details.soulMission;
             else if (type === 'personality') displayDescription = details.personalityTrait;
-            // For shadow/gift in simple view, keep prop `description` for brevity
-            
             return (
               <div className={`${bgColor} rounded-lg p-4 shadow-sm md:shadow-md border-l-4 ${borderColor} transition-all duration-300`}>
-                <div className="flex items-center gap-2 mb-2">
-                  {icon}
-                  <h3 className={`font-semibold ${textColor}`}>{title}</h3>
-                </div>
-                <div className={`text-2xl font-bold ${textColor} mb-1`}>
-                  {cardId} - {details.name}
-                </div>
+                <div className="flex items-center gap-2 mb-2">{icon}<h3 className={`font-semibold ${textColor}`}>{title}</h3></div>
+                <div className={`text-2xl font-bold ${textColor} mb-1`}>{cardId} - {details.name}</div>
                 <p className={`text-sm font-semibold ${textColor} mb-2`}>{details.shortMeaning}</p>
-                <p className={`text-xs ${textColor} opacity-80 mb-2 ${showMore ? 'max-h-none' : 'max-h-10 overflow-hidden'}`}>{displayDescription}</p>
-                
-                {challenges && (
-                   <p className={`text-xs ${textColor} opacity-70 mt-1 ${showMore ? 'max-h-none' : 'max-h-10 overflow-hidden'}`}>
-                     <span className="font-semibold">挑戰：</span>{challenges}
-                   </p>
-                )}
-
-                <button onClick={() => setShowMore(!showMore)} className={`text-xs ${textColor} hover:underline`}>
-                    {showMore ? '收合' : '展開更多'}
-                </button>
+                <p className={`text-xs ${textColor} opacity-80 mb-2`}>{displayDescription}</p>
+                {challenges && (<p className={`text-xs ${textColor} opacity-70 mt-1`}><span className="font-semibold">挑戰：</span>{challenges}</p>)}
               </div>
             );
           };
 
           const DetailedTarotReport = ({ reportData }) => {
             const [openSections, setOpenSections] = useState({});
-            const [expandedAnalysis, setExpandedAnalysis] = useState(true); // Default open
-
-            const toggleSection = (id) => {
-                setOpenSections(prev => ({...prev, [id]: !prev[id]}));
-            };
-
+            const [expandedAnalysis, setExpandedAnalysis] = useState(true);
+            const toggleSection = (id) => setOpenSections(prev => ({...prev, [id]: !prev[id]}));
             if (!reportData || !reportData.cardsAnalysis) return <p>報告生成中...</p>;
-
-
             return (
                 <div className="bg-white rounded-lg p-6 shadow-lg mt-6 animate-fade-in">
                     <h2 className="text-3xl font-bold text-purple-900 mb-3 text-center">您的深度塔羅生命藍圖報告</h2>
                     <p className="text-center text-gray-700 mb-6 text-base leading-relaxed">{reportData.introduction}</p>
-
                     <div className="space-y-6 mb-8">
                         <h3 className="text-2xl font-bold text-purple-800 text-center mb-4">核心原型卡牌解析</h3>
                         {reportData.cardsAnalysis.map((cardAnalysis, index) => {
                             const cardData = cardDetails[cardAnalysis.cardId];
                             if (!cardData) return null; 
                             const sectionId = `card-${cardAnalysis.cardId}-${index}`;
-                            
                             return (
                                 <div key={index} className="border-2 border-purple-200 rounded-lg overflow-hidden shadow-md">
-                                    <button 
-                                        onClick={() => toggleSection(sectionId)} 
-                                        className="w-full p-5 bg-gradient-to-r from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 flex justify-between items-center transition-all duration-300"
-                                    >
+                                    <button onClick={() => toggleSection(sectionId)} className="w-full p-5 bg-gradient-to-r from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 flex justify-between items-center transition-all duration-300">
                                         <div className="text-left">
-                                            <span className="text-lg sm:text-xl font-bold text-purple-800">
-                                                {cardAnalysis.role}: {cardData.name} ({cardAnalysis.cardId})
-                                            </span>
-                                            <div className="text-sm text-purple-600 mt-1">
-                                                核心意義: {cardData.shortMeaning || ''}
-                                            </div>
+                                            <span className="text-lg sm:text-xl font-bold text-purple-800">{cardAnalysis.role}: {cardData.name} ({cardAnalysis.cardId})</span>
+                                            <div className="text-sm text-purple-600 mt-1">核心意義: {cardData.shortMeaning || ''}</div>
                                         </div>
-                                        <span className="text-purple-600 text-2xl">
-                                            {openSections[sectionId] ? <ChevronUp /> : <ChevronDown />}
-                                        </span>
+                                        <span className="text-purple-600 text-2xl">{openSections[sectionId] ? <ChevronUp /> : <ChevronDown />}</span>
                                     </button>
-                                    
                                     {openSections[sectionId] && (
                                         <div className="p-6 bg-white space-y-4 animate-fade-in">
                                             <div className="p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
                                                 <h4 className="font-bold text-green-800 mb-2 flex items-center gap-1"><Sparkles className="w-4 h-4" /> 天賦與靈魂使命 ({cardAnalysis.roleKey === 'gift' ? '此牌在此組合中的天賦展現' : '核心天賦'})</h4>
                                                 <p className="text-sm text-gray-700 leading-relaxed">{cardData.soulMission}</p>
                                             </div>
-                                            
                                             <div className="p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
                                                 <h4 className="font-bold text-orange-800 mb-2 flex items-center gap-1"><User className="w-4 h-4" /> 人格特質與今生表現 ({cardAnalysis.roleKey === 'gift' ? '此牌在此組合中的行為模式' : '主要特質'})</h4>
                                                 <p className="text-sm text-gray-700 leading-relaxed">{cardData.personalityTrait}</p>
                                             </div>
-
                                             <div className="p-4 bg-red-50 rounded-lg border-l-4 border-red-500">
                                                 <h4 className="font-bold text-red-800 mb-2 flex items-center gap-1"><AlertCircleIcon className="w-4 h-4" /> 主要挑戰與成長課題 ({cardAnalysis.roleKey === 'gift' ? '此牌在此組合中的挑戰' : '核心挑戰'})</h4>
                                                 <p className="text-sm text-gray-700 leading-relaxed">{cardData.challenges}</p>
@@ -512,18 +449,11 @@
                             );
                         })}
                     </div>
-
                      <div className="mb-8">
-                        <button
-                            onClick={() => setExpandedAnalysis(!expandedAnalysis)}
-                            className="w-full p-5 bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 rounded-lg shadow-md transition-all duration-300 flex items-center justify-between"
-                        >
+                        <button onClick={() => setExpandedAnalysis(!expandedAnalysis)} className="w-full p-5 bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 rounded-lg shadow-md transition-all duration-300 flex items-center justify-between">
                             <h3 className="text-xl sm:text-2xl font-bold text-blue-900 flex items-center gap-2"><BrainIcon /> 牌組互動動力學分析</h3>
-                            <span className="text-blue-600 text-2xl">
-                                {expandedAnalysis ? <ChevronUp /> : <ChevronDown />}
-                            </span>
+                            <span className="text-blue-600 text-2xl">{expandedAnalysis ? <ChevronUp /> : <ChevronDown />}</span>
                         </button>
-                        
                         {expandedAnalysis && (
                             <div className="mt-4 p-6 bg-blue-50 rounded-lg border-2 border-blue-200 animate-fade-in">
                                 <h4 className="font-bold text-blue-800 mb-2 text-lg">內在能量流動：</h4>
@@ -533,14 +463,9 @@
                             </div>
                         )}
                     </div>
-                    
                     <div className="text-center p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
                         <h4 className="text-xl font-bold text-purple-800 mb-3">🙏 整合與實踐</h4>
-                        <p className="text-gray-700 leading-relaxed text-sm">
-                            這份報告提供了一個關於您生命藍圖的深度視角。請記住，這些牌卡不是對您的限制，而是一份珍貴的指引。
-                            它們揭示了您的天賦、挑戰與最高的潛能。通過理解和整合這些原型能量，特別是覺察並轉化報告中提及的挑戰與發展焦點，
-                            您將能更有意識地走在屬於自己的獨特生命道路上，活出最真實、最完整的自己。
-                        </p>
+                        <p className="text-gray-700 leading-relaxed text-sm">這份報告提供了一個關於您生命藍圖的深度視角。請記住，這些牌卡不是對您的限制，而是一份珍貴的指引。它們揭示了您的天賦、挑戰與最高的潛能。通過理解和整合這些原型能量，特別是覺察並轉化報告中提及的挑戰與發展焦點，您將能更有意識地走在屬於自己的獨特生命道路上，活出最真實、最完整的自己。</p>
                     </div>
                 </div>
             );
@@ -549,156 +474,39 @@
           return (
             <div className="max-w-3xl mx-auto p-4 sm:p-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-xl shadow-lg md:shadow-xl font-sans">
               <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-purple-800 mb-2 flex items-center justify-center gap-2">
-                  <Sparkles className="w-8 h-8" />
-                  塔羅生命靈數計算器
-                </h1>
+                <h1 className="text-3xl font-bold text-purple-800 mb-2 flex items-center justify-center gap-2"><Sparkles className="w-8 h-8" />塔羅生命靈數計算器</h1>
                 <p className="text-gray-600">依據 Mary K. Greer 系統，解碼您的主牌、個性牌與陰影/天賦牌</p>
               </div>
-
               <div className="bg-white rounded-lg p-6 shadow-md mb-6">
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <Calendar />
-                    請輸入您的出生日期
-                  </label>
-                  <input
-                    type="date"
-                    value={birthDate}
-                    onChange={(e) => setBirthDate(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  />
-                </div>
-                <button
-                  onClick={handleCalculate}
-                  className="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700 transition-colors font-semibold flex items-center justify-center gap-2"
-                >
-                  <Sparkles className="w-5 h-5" /> 計算我的生命牌卡
-                </button>
+                <div className="mb-6"><label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"><Calendar />請輸入您的出生日期</label><input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"/></div>
+                <button onClick={handleCalculate} className="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700 transition-colors font-semibold flex items-center justify-center gap-2"><Sparkles className="w-5 h-5" /> 計算我的生命牌卡</button>
               </div>
-
               {result && (
                 <div className="space-y-6 animate-fade-in">
                   <div className="bg-white rounded-lg p-4 shadow-md">
                     <div className="flex justify-center space-x-2 sm:space-x-4">
-                      <button
-                        onClick={() => setViewMode('simple')}
-                        className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all text-sm sm:text-base ${
-                          viewMode === 'simple'
-                            ? 'bg-purple-600 text-white shadow-lg transform scale-105'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        📊 簡要概覽
-                      </button>
-                      <button
-                        onClick={() => setViewMode('detailed')}
-                        className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all text-sm sm:text-base ${
-                          viewMode === 'detailed'
-                            ? 'bg-purple-600 text-white shadow-lg transform scale-105'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        📚 詳細分析
-                      </button>
+                      <button onClick={() => setViewMode('simple')} className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all text-sm sm:text-base ${viewMode === 'simple' ? 'bg-purple-600 text-white shadow-lg transform scale-105' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>📊 簡要概覽</button>
+                      <button onClick={() => setViewMode('detailed')} className={`px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all text-sm sm:text-base ${viewMode === 'detailed' ? 'bg-purple-600 text-white shadow-lg transform scale-105' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>📚 詳細分析</button>
                     </div>
                   </div>
-
                   {viewMode === 'simple' ? (
                     <div className="bg-white rounded-lg p-6 shadow-md">
-                      <h2 className="text-xl font-bold text-gray-800 mb-4">
-                        您的塔羅生命靈數結果 ({formatDate(birthDate)})
-                      </h2>
-                      
+                      <h2 className="text-xl font-bold text-gray-800 mb-4">您的塔羅生命靈數結果 ({formatDate(birthDate)})</h2>
                       <div className="grid md:grid-cols-1 gap-6">
-                        <CardDisplay 
-                          icon={<Hash className="w-5 h-5 text-purple-600" />} 
-                          title="靈魂卡牌 (Soul Card)"
-                          cardId={result.soulCard}
-                          bgColor="bg-purple-100"
-                          textColor="text-purple-900"
-                          borderColor="border-purple-500"
-                          type="soul"
-                          challenges={cardDetails[result.soulCard]?.challenges}
-                        />
-                        <CardDisplay 
-                          icon={<User className="w-5 h-5 text-pink-600" />} 
-                          title="個性卡牌 (Personality Card)"
-                          cardId={result.personalityCard}
-                          bgColor="bg-pink-100"
-                          textColor="text-pink-900"
-                          borderColor="border-pink-500"
-                          type="personality"
-                          challenges={cardDetails[result.personalityCard]?.challenges}
-                        />
-
-                        {result.shadowCard !== null && cardDetails[result.shadowCard] && (
-                            <CardDisplay 
-                              icon={<Shield className="w-5 h-5 text-slate-600" />} 
-                              title="陰影牌 (Shadow Card)"
-                              cardId={result.shadowCard}
-                              bgColor="bg-slate-100"
-                              textColor="text-slate-900"
-                              borderColor="border-slate-500"
-                              description="這是您需要面對與整合的內在挑戰，也是隱藏的潛能所在。"
-                              challenges={cardDetails[result.shadowCard]?.challenges}
-                            />
-                        )}
-
-                        {result.giftCard !== null && cardDetails[result.giftCard] && (
-                            <CardDisplay 
-                              icon={<Gift className="w-5 h-5 text-yellow-600" />} 
-                              title="隱藏/天賦卡牌 (Hidden/Gift Card)"
-                              cardId={result.giftCard}
-                              bgColor="bg-yellow-100"
-                              textColor="text-yellow-900"
-                              borderColor="border-yellow-500"
-                              description="作為太陽三重奏的一部分，這代表您的核心意志與天賦才能。"
-                              challenges={cardDetails[result.giftCard]?.challenges}
-                            />
-                        )}
+                        <CardDisplay icon={<Hash className="w-5 h-5 text-purple-600" />} title="靈魂卡牌 (Soul Card)" cardId={result.soulCard} bgColor="bg-purple-100" textColor="text-purple-900" borderColor="border-purple-500" type="soul" challenges={cardDetails[result.soulCard]?.challenges}/>
+                        <CardDisplay icon={<User className="w-5 h-5 text-pink-600" />} title="個性卡牌 (Personality Card)" cardId={result.personalityCard} bgColor="bg-pink-100" textColor="text-pink-900" borderColor="border-pink-500" type="personality" challenges={cardDetails[result.personalityCard]?.challenges}/>
+                        {result.shadowCard !== null && cardDetails[result.shadowCard] && (<CardDisplay icon={<Shield className="w-5 h-5 text-slate-600" />} title="陰影牌 (Shadow Card)" cardId={result.shadowCard} bgColor="bg-slate-100" textColor="text-slate-900" borderColor="border-slate-500" description="這是您需要面對與整合的內在挑戰，也是隱藏的潛能所在。" challenges={cardDetails[result.shadowCard]?.challenges}/>)}
+                        {result.giftCard !== null && cardDetails[result.giftCard] && (<CardDisplay icon={<Gift className="w-5 h-5 text-yellow-600" />} title="隱藏/天賦卡牌 (Hidden/Gift Card)" cardId={result.giftCard} bgColor="bg-yellow-100" textColor="text-yellow-900" borderColor="border-yellow-500" description="作為太陽三重奏的一部分，這代表您的核心意志與天賦才能。" challenges={cardDetails[result.giftCard]?.challenges}/>)}
                       </div>
-
-                      <button
-                        onClick={() => setShowProcess(!showProcess)}
-                        className="mt-6 text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1"
-                      >
-                        {showProcess ? '隱藏' : '顯示'}計算過程
-                        <span className="text-purple-600">{showProcess ? <ChevronUp /> : <ChevronDown />}</span>
-                      </button>
-
-                      {showProcess && (
-                        <div className="mt-4 p-4 bg-gray-50 rounded-lg animate-fade-in">
-                          <h4 className="font-semibold text-gray-700 mb-2">計算步驟：</h4>
-                          <p className="text-sm text-gray-600 mb-2">
-                            出生日期：{formatDate(birthDate)}
-                          </p>
-                          <div className="space-y-1">
-                            {result.steps.map((step, index) => (
-                              <p key={index} className="text-sm font-mono text-gray-700">
-                                {step}
-                              </p>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      <button onClick={() => setShowProcess(!showProcess)} className="mt-6 text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1">{showProcess ? '隱藏' : '顯示'}計算過程<span className="text-purple-600">{showProcess ? <ChevronUp /> : <ChevronDown />}</span></button>
+                      {showProcess && (<div className="mt-4 p-4 bg-gray-50 rounded-lg animate-fade-in"><h4 className="font-semibold text-gray-700 mb-2">計算步驟：</h4><p className="text-sm text-gray-600 mb-2">出生日期：{formatDate(birthDate)}</p><div className="space-y-1">{result.steps.map((step, index) => (<p key={index} className="text-sm font-mono text-gray-700">{step}</p>))}</div></div>)}
                     </div>
-                  ) : (
-                    detailedReport && <DetailedTarotReport reportData={detailedReport} />
-                  )}
+                  ) : (detailedReport && <DetailedTarotReport reportData={detailedReport} />)}
                 </div>
               )}
-
               <div className="text-center mt-8">
-                <button
-                  onClick={() => setShowInfo(!showInfo)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-white text-purple-700 rounded-full shadow-md hover:bg-purple-50 transition-transform transform hover:scale-105"
-                >
-                  <span className="font-semibold">了解更多關於塔羅生命靈數</span>
-                  {showInfo ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </button>
+                <button onClick={() => setShowInfo(!showInfo)} className="inline-flex items-center gap-2 px-6 py-3 bg-white text-purple-700 rounded-full shadow-md hover:bg-purple-50 transition-transform transform hover:scale-105"><span className="font-semibold">了解更多關於塔羅生命靈數</span>{showInfo ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}</button>
               </div>
-
               {showInfo && <TarotTheoryInfo />}
             </div>
           );
@@ -711,345 +519,471 @@
           const [person1Name, setPerson1Name] = useState('');
           const [person2Name, setPerson2Name] = useState('');
           const [result, setResult] = useState(null);
-          const [showDetails, setShowDetails] = useState({
-            soul: false,
-            personality: false,
-            shadow: false
-          });
+          const [showDetails, setShowDetails] = useState({ soul: false, personality: false, shadow: false, yearly: false, monthly: false });
 
           const compatibilityMatrix = {
-            1: {
-                1: { score: 85, type: '雙重意志力', desc: '兩個1號魔術師相遇，代表著意志力、創造力和行動力的強強結合。這是一段充滿活力和創新潛能的關係，雙方都擁有將想法化為現實的強大能力，能夠共同發起並推動項目，快速取得進展。', challenges: '主要的挑戰在於「誰來主導？」。兩個強勢的個體可能產生權力鬥爭或競爭。需要有意識地協調目標，避免自我中心，並學會輪流領導或共同合作。如果溝通不良或缺乏共同願景，強大的能量可能會轉向內部衝突，而非外部創造。' },
-                2: { score: 75, type: '行動與直覺', desc: '魔術師的行動力與女祭司的直覺洞察形成互補。魔術師能將女祭司的深層智慧化為實際行動，而女祭司則能為魔術師提供方向與深度。', challenges: '魔術師可能覺得女祭司過於被動或神秘，女祭司可能覺得魔術師太急躁或表面。需要耐心溝通，魔術師學習聆聽，女祭司學習表達。' },
-                3: { score: 80, type: '創造與豐盛', desc: '魔術師的創造意志與女帝的豐饒能量結合，能共同創造出實質且美好的成果。魔術師提供方法，女帝提供滋養與資源。', challenges: '魔術師的目標導向可能與女帝的享受過程產生衝突。需平衡效率與享受，並確保創造的目標是雙方都認同的。' },
-                4: { score: 70, type: '意志與結構', desc: '魔術師的創新能力與皇帝的組織結構相輔相成。魔術師帶來新點子，皇帝則能將其實現並制度化，建立穩固的基礎。', challenges: '魔術師可能覺得皇帝過於僵化，皇帝可能覺得魔術師不切實際。需要互相尊重對方的方法，魔術師學習務實，皇帝學習彈性。' },
-                5: { score: 65, type: '創新與傳統', desc: '魔術師的個體創造力與教皇的傳統智慧形成有趣的對話。魔術師挑戰現狀，教皇提供經驗與道德框架。', challenges: '可能在方法論和價值觀上產生分歧。魔術師需要尊重智慧傳承，教皇需要對新方法保持開放，尋找融合點而非對立。' },
-                // ... (Continue for all pairs up to 21 with detailed desc and challenges) ...
-                // For brevity in this response, I'll show a few more examples and then generalize that ALL pairs should be filled out.
-                 6: {score:90,type:'創造性的愛',desc:'魔術師的創造力在戀人牌代表的愛與關係中能得到極大的滋養與發揮。他們共同做出選擇，創造充滿活力與和諧的關係，彼此激勵。', challenges:'魔術師的個人意志可能在關係選擇中過於強勢，或戀人牌的猶豫不決讓魔術師失去耐心。需要坦誠溝通各自的需求與價值觀，確保選擇是共同的。'},
-                 7: {score:85,type:'意志的推進力',desc:'魔術師的意志與戰車的決心結合，形成一股強大的前進動力。他們能共同設定目標並勇往直前，克服障礙，取得成功。', challenges:'兩者都非常強勢，若方向不一致，很容易產生衝突或競爭。需要明確的共同目標，並學會協調步伐，避免一方拖垮另一方。'},
-                 8: {score:80,type:'意志與內力',desc:'魔術師的外在顯化能力與力量牌的內在堅韌相結合，能以一種平衡的方式達成目標。魔術師帶來方法，力量牌帶來耐心與慈悲。', challenges:'魔術師的急切可能與力量牌的徐緩產生摩擦。魔術師需學習內在力量的柔韌，力量牌需學習更主動地運用能力。'},
-                 9: {score:60,type:'行動與內省',desc:'魔術師的外向行動與隱士的內向反思形成鮮明對比，但也可能互補。隱士的智慧能指引魔術師的行動，魔術師能將隱士的洞見付諸實踐。', challenges:'生活節奏和溝通方式差異大。魔術師可能覺得隱士太孤僻，隱士可能覺得魔術師太喧囂。需要尊重彼此的空間與需求。'},
-                 10:{score:85,type:'創造機遇',desc:'魔術師的顯化能力與命運之輪的機遇完美結合。魔術師能主動創造並抓住命運之輪帶來的機會，共同駕馭生命的流動。', challenges:'魔術師可能試圖掌控命運之輪的不可預測性，而命運之輪的變化可能打亂魔術師的計劃。學習在變化中保持彈性與信任是關鍵。'},
-                 11:{score:70,type:'意志與公正',desc:'魔術師的行動力需要正義牌的清晰判斷與平衡。正義能確保魔術師的創造是基於公平和真理的。', challenges:'魔術師的靈活性可能與正義的原則性產生衝突。正義的嚴謹可能讓魔術師感到受限。需要找到原則與彈性的平衡點。'},
-                 12:{score:65,type:'行動與臣服',desc:'魔術師的主動創造與倒吊人的被動臣服形成強烈對比。倒吊人的新視角可以啟發魔術師，魔術師可以幫助倒吊人走出停滯。', challenges:'魔術師可能不理解倒吊人的「無為」，倒吊人可能抗拒魔術師的催促。學習在適當的時候行動，在適當的時候等待與反思。'},
-                 13:{score:75,type:'創造與轉化',desc:'魔術師的創造力與死神的轉化力量結合，能帶來深刻的改變與新生。他們能共同結束舊模式，開創新局面。', challenges:'魔術師可能害怕死神帶來的徹底改變，死神的直接可能讓魔術師感到失控。需要勇氣去面對結束，並信任之後的新生。'},
-                 14:{score:80,type:'顯化與調和',desc:'魔術師的顯化能力與節制牌的調和藝術能創造出平衡且持久的成果。他們善於整合不同元素，創造和諧。', challenges:'魔術師的專注目標可能與節制的尋求多方平衡有所不同。需要耐心協商，確保行動既有效率又具包容性。'},
-                 15:{score:70,type:'意志與慾望',desc:'魔術師的意志力與惡魔牌的原始慾望相遇，可能爆發強大的創造力，也可能陷入束縛。關鍵在於如何引導這股能量。', challenges:'惡魔的誘惑可能讓魔術師誤用能力，或雙方陷入不健康的依賴。需要高度的自我覺察，將激情導向正面，避免沉溺。'},
-                 16:{score:75,type:'創造性突破',desc:'魔術師的創造力與塔的顛覆性能量結合，能帶來革命性的突破和舊有結構的瓦解，為新事物騰出空間。', challenges:'塔的突變可能打亂魔術師的計劃，甚至摧毀其成果。魔術師需學會在混亂中保持彈性，並將危機視為重建的機會。'},
-                 17:{score:85,type:'顯化希望',desc:'魔術師的實現能力與星星的希望靈感相結合，能將美好的願景化為現實，為自己和他人帶來光明。', challenges:'星星的理想主義可能讓魔術師的實際操作遇到困難。需要平衡夢想與現實，將希望落實於具體行動。'},
-                 18:{score:70,type:'意識與潛意識',desc:'魔術師的清晰意識與月亮的模糊潛意識相遇，是一場探索內在迷霧的旅程。月亮的直覺能豐富魔術師的創造，魔術師的理性有助於釐清幻象。', challenges:'月亮的幻象和恐懼可能干擾魔術師的專注力。魔術師的邏輯可能難以理解月亮的非理性。需要信任直覺，同時保持分辨能力。'},
-                 19:{score:90,type:'光輝創造',desc:'魔術師的創造力在太陽的光明照耀下得以充分展現。他們能共同創造充滿喜悅、成功和活力的成果，散發正能量。', challenges:'兩者都可能比較自我中心。魔術師需要確保其創造服務於太陽的整體福祉，太陽的強光不要灼傷魔術師的個別性。'},
-                 20:{score:80,type:'意志的覺醒',desc:'魔術師的顯化能力與審判的覺醒召喚結合，能共同響應生命的更高目的，實現深刻的轉化和人生目標的重新定義。', challenges:'審判的自我評估可能讓魔術師對過去的創造產生懷疑。魔術師需要將其能力導向新的、更有意義的方向，而非執著舊有。'},
-                 21:{score:85,type:'完成的創造',desc:'魔術師的創造力與世界的圓滿達成相輔相成。他們能將理念完美地實現，體驗到成就感和宇宙的合一。', challenges:'世界牌的完成感可能讓魔術師感到下一步無事可做。需要理解完成也是新循環的開始，魔術師的創造力永無止境。'}
-            },
-            // Note: For a full implementation, all 22x22 combinations need to be filled.
-            // I will fill out a few more for card 2 for demonstration
-            2: {
-                // Symmetric entries like 2:1 are covered by 1:2's logic in getCompatibility
-                2: { score: 85, type: '深層靈魂連結', desc: '兩位女祭司相遇，代表直覺、潛意識智慧與內在世界的深度共鳴。這是一段充滿神秘感、相互理解且無需過多言語的連結。她們能共同探索靈性奧秘，分享深邃的洞見。', challenges: '關係可能過於內向、被動，缺乏在現實世界的具體行動。雙方都可能壓抑情感，不願直接溝通。需要鼓勵彼此將內在智慧表達出來，並積極參與外部世界，避免陷入孤立或過度沉思。' },
-                3: { score: 80, type: '直覺滋養創造', desc: '女祭司的直覺智慧與女帝的豐盛創造力形成強大的陰性力量結合。女祭司提供靈感與方向，女帝則將其實現並滋養，共同創造充滿愛與美的成果。', challenges: '女祭司的靜默可能與女帝的熱情外放產生步調不一。女帝可能覺得女祭司不夠投入物質層面，女祭司可能覺得女帝不夠深刻。需欣賞彼此的貢獻，找到內外平衡。' },
-                // ... And so on for all 231 unique pairs + 22 self-pairs
-            }
-            // (The rest of the compatibilityMatrix with equally detailed entries for all pairs)
-            // To complete, fill in all card combinations from 2 to 21, each interacting with numbers greater than or equal to itself.
+            1: { 1: { score: 85, type: '雙重意志力', desc: '兩個1號魔術師相遇，代表著意志力、創造力和行動力的強強結合。這是一段充滿活力和創新潛能的關係，雙方都擁有將想法化為現實的強大能力，能夠共同發起並推動項目，快速取得進展。', challenges: '主要的挑戰在於「誰來主導？」。兩個強勢的個體可能產生權力鬥爭或競爭。需要有意識地協調目標，避免自我中心，並學會輪流領導或共同合作。如果溝通不良或缺乏共同願景，強大的能量可能會轉向內部衝突，而非外部創造。' }, 2: { score: 75, type: '行動與直覺', desc: '魔術師的行動力與女祭司的直覺洞察形成互補。魔術師能將女祭司的深層智慧化為實際行動，而女祭司則能為魔術師提供方向與深度。', challenges: '魔術師可能覺得女祭司過於被動或神秘，女祭司可能覺得魔術師太急躁或表面。需要耐心溝通，魔術師學習聆聽，女祭司學習表達。' }, 3: { score: 80, type: '創造與豐盛', desc: '魔術師的創造意志與女帝的豐饒能量結合，能共同創造出實質且美好的成果。魔術師提供方法，女帝提供滋養與資源。', challenges: '魔術師的目標導向可能與女帝的享受過程產生衝突。需平衡效率與享受，並確保創造的目標是雙方都認同的。' }, 4: { score: 70, type: '意志與結構', desc: '魔術師的創新能力與皇帝的組織結構相輔相成。魔術師帶來新點子，皇帝則能將其實現並制度化，建立穩固的基礎。', challenges: '魔術師可能覺得皇帝過於僵化，皇帝可能覺得魔術師不切實際。需要互相尊重對方的方法，魔術師學習務實，皇帝學習彈性。' }, 5: { score: 65, type: '創新與傳統', desc: '魔術師的個體創造力與教皇的傳統智慧形成有趣的對話。魔術師挑戰現狀，教皇提供經驗與道德框架。', challenges: '可能在方法論和價值觀上產生分歧。魔術師需要尊重智慧傳承，教皇需要對新方法保持開放，尋找融合點而非對立。' }, 6: {score:90,type:'創造性的愛',desc:'魔術師的創造力在戀人牌代表的愛與關係中能得到極大的滋養與發揮。他們共同做出選擇，創造充滿活力與和諧的關係，彼此激勵。', challenges:'魔術師的個人意志可能在關係選擇中過於強勢，或戀人牌的猶豫不決讓魔術師失去耐心。需要坦誠溝通各自的需求與價值觀，確保選擇是共同的。'}, 7: {score:85,type:'意志的推進力',desc:'魔術師的意志與戰車的決心結合，形成一股強大的前進動力。他們能共同設定目標並勇往直前，克服障礙，取得成功。', challenges:'兩者都非常強勢，若方向不一致，很容易產生衝突或競爭。需要明確的共同目標，並學會協調步伐，避免一方拖垮另一方。'}, 8: {score:80,type:'意志與內力',desc:'魔術師的外在顯化能力與力量牌的內在堅韌相結合，能以一種平衡的方式達成目標。魔術師帶來方法，力量牌帶來耐心與慈悲。', challenges:'魔術師的急切可能與力量牌的徐緩產生摩擦。魔術師需學習內在力量的柔韌，力量牌需學習更主動地運用能力。'}, 9: {score:60,type:'行動與內省',desc:'魔術師的外向行動與隱士的內向反思形成鮮明對比，但也可能互補。隱士的智慧能指引魔術師的行動，魔術師能將隱士的洞見付諸實踐。', challenges:'生活節奏和溝通方式差異大。魔術師可能覺得隱士太孤僻，隱士可能覺得魔術師太喧囂。需要尊重彼此的空間與需求。'}, 10:{score:85,type:'創造機遇',desc:'魔術師的顯化能力與命運之輪的機遇完美結合。魔術師能主動創造並抓住命運之輪帶來的機會，共同駕馭生命的流動。', challenges:'魔術師可能試圖掌控命運之輪的不可預測性，而命運之輪的變化可能打亂魔術師的計劃。學習在變化中保持彈性與信任是關鍵。'}, 11:{score:70,type:'意志與公正',desc:'魔術師的行動力需要正義牌的清晰判斷與平衡。正義能確保魔術師的創造是基於公平和真理的。', challenges:'魔術師的靈活性可能與正義的原則性產生衝突。正義的嚴謹可能讓魔術師感到受限。需要找到原則與彈性的平衡點。'}, 12:{score:65,type:'行動與臣服',desc:'魔術師的主動創造與倒吊人的被動臣服形成強烈對比。倒吊人的新視角可以啟發魔術師，魔術師可以幫助倒吊人走出停滯。', challenges:'魔術師可能不理解倒吊人的「無為」，倒吊人可能抗拒魔術師的催促。學習在適當的時候行動，在適當的時候等待與反思。'}, 13:{score:75,type:'創造與轉化',desc:'魔術師的創造力與死神的轉化力量結合，能帶來深刻的改變與新生。他們能共同結束舊模式，開創新局面。', challenges:'魔術師可能害怕死神帶來的徹底改變，死神的直接可能讓魔術師感到失控。需要勇氣去面對結束，並信任之後的新生。'}, 14:{score:80,type:'顯化與調和',desc:'魔術師的顯化能力與節制牌的調和藝術能創造出平衡且持久的成果。他們善於整合不同元素，創造和諧。', challenges:'魔術師的專注目標可能與節制的尋求多方平衡有所不同。需要耐心協商，確保行動既有效率又具包容性。'}, 15:{score:70,type:'意志與慾望',desc:'魔術師的意志力與惡魔牌的原始慾望相遇，可能爆發強大的創造力，也可能陷入束縛。關鍵在於如何引導這股能量。', challenges:'惡魔的誘惑可能讓魔術師誤用能力，或雙方陷入不健康的依賴。需要高度的自我覺察，將激情導向正面，避免沉溺。'}, 16:{score:75,type:'創造性突破',desc:'魔術師的創造力與塔的顛覆性能量結合，能帶來革命性的突破和舊有結構的瓦解，為新事物騰出空間。', challenges:'塔的突變可能打亂魔術師的計劃，甚至摧毀其成果。魔術師需學會在混亂中保持彈性，並將危機視為重建的機會。'}, 17:{score:85,type:'顯化希望',desc:'魔術師的實現能力與星星的希望靈感相結合，能將美好的願景化為現實，為自己和他人帶來光明。', challenges:'星星的理想主義可能讓魔術師的實際操作遇到困難。需要平衡夢想與現實，將希望落實於具體行動。'}, 18:{score:70,type:'意識與潛意識',desc:'魔術師的清晰意識與月亮的模糊潛意識相遇，是一場探索內在迷霧的旅程。月亮的直覺能豐富魔術師的創造，魔術師的理性有助於釐清幻象。', challenges:'月亮的幻象和恐懼可能干擾魔術師的專注力。魔術師的邏輯可能難以理解月亮的非理性。需要信任直覺，同時保持分辨能力。'}, 19:{score:90,type:'光輝創造',desc:'魔術師的創造力在太陽的光明照耀下得以充分展現。他們能共同創造充滿喜悅、成功和活力的成果，散發正能量。', challenges:'兩者都可能比較自我中心。魔術師需要確保其創造服務於太陽的整體福祉，太陽的強光不要灼傷魔術師的個別性。'}, 20:{score:80,type:'意志的覺醒',desc:'魔術師的顯化能力與審判的覺醒召喚結合，能共同響應生命的更高目的，實現深刻的轉化和人生目標的重新定義。', challenges:'審判的自我評估可能讓魔術師對過去的創造產生懷疑。魔術師需要將其能力導向新的、更有意義的方向，而非執著舊有。'}, 21:{score:85,type:'完成的創造',desc:'魔術師的創造力與世界的圓滿達成相輔相成。他們能將理念完美地實現，體驗到成就感和宇宙的合一。', challenges:'世界牌的完成感可能讓魔術師感到下一步無事可做。需要理解完成也是新循環的開始，魔術師的創造力永無止境。'}},
+            2: { 2: { score: 85, type: '深層靈魂連結', desc: '兩位女祭司相遇，代表直覺、潛意識智慧與內在世界的深度共鳴。這是一段充滿神秘感、相互理解且無需過多言語的連結。她們能共同探索靈性奧秘，分享深邃的洞見。', challenges: '關係可能過於內向、被動，缺乏在現實世界的具體行動。雙方都可能壓抑情感，不願直接溝通。需要鼓勵彼此將內在智慧表達出來，並積極參與外部世界，避免陷入孤立或過度沉思。' }, 3: { score: 80, type: '直覺滋養創造', desc: '女祭司的直覺智慧與女帝的豐盛創造力形成強大的陰性力量結合。女祭司提供靈感與方向，女帝則將其實現並滋養，共同創造充滿愛與美的成果。', challenges: '女祭司的靜默可能與女帝的熱情外放產生步調不一。女帝可能覺得女祭司不夠投入物質層面，女祭司可能覺得女帝不夠深刻。需欣賞彼此的貢獻，找到內外平衡。' }, }
           };
-          // For demonstration, a placeholder for the full matrix would be here
-          // This simplified version only details interactions for card 1.
-          // In a real application, the compatibilityMatrix would be very large and comprehensive.
-          // Below is a placeholder to represent that the matrix would continue, but due to length limits,
-          // only the pattern established with card 1 will be shown.
-
-          const fillCompatibilityMatrix = (matrix) => {
-                for (let i = 1; i <= 21; i++) {
+          const fullCompatibilityMatrix = useMemo(() => {
+                const matrix = JSON.parse(JSON.stringify(compatibilityMatrix));
+                for (let i = 0; i <= 21; i++) {
                     if (!matrix[i]) matrix[i] = {};
                     for (let j = i; j <= 21; j++) {
                         if (!matrix[i][j]) {
-                            // Default placeholder if specific entry is missing (like in this truncated example)
-                            // A real implementation would have unique text for all.
-                             if (i === j) { // Self-interaction placeholder
+                             if (i === j) {
                                 matrix[i][j] = {score: 80, type: `同頻共振 (${cardDetails[i]?.name})`, desc: `兩個 ${cardDetails[i]?.name} 相遇，${cardDetails[i]?.shortMeaning} 的能量加倍。這可能帶來強大的協同效應，但也可能放大該牌的挑戰。`, challenges: `共同的盲點可能被忽略。需要有意識地覺察並平衡 ${cardDetails[i]?.name} 的極端表現。例如，${cardDetails[i]?.challenges}`};
-                            } else { // Pair interaction placeholder
+                            } else {
                                 matrix[i][j] = {score: 70, type: `互補學習 (${cardDetails[i]?.name} & ${cardDetails[j]?.name})`, desc: `${cardDetails[i]?.name} 的 ${cardDetails[i]?.shortMeaning.split('、')[0]} 與 ${cardDetails[j]?.name} 的 ${cardDetails[j]?.shortMeaning.split('、')[0]} 相互作用，提供學習與成長的機會。`, challenges: `雙方需理解並尊重彼此的差異。 ${cardDetails[i]?.name} 的挑戰 (${cardDetails[i]?.challenges.split('。')[0]}) 可能與 ${cardDetails[j]?.name} 的挑戰 (${cardDetails[j]?.challenges.split('。')[0]}) 相互作用，需要耐心溝通。`};
                             }
                         }
                     }
                 }
-                // Overwrite the specific examples already detailed
-                 matrix[1] = compatibilityMatrix[1]; 
-                 if(compatibilityMatrix[2]) matrix[2] = {...matrix[2], ...compatibilityMatrix[2]};
-
                 return matrix;
-          };
-          const fullCompatibilityMatrix = fillCompatibilityMatrix(JSON.parse(JSON.stringify(compatibilityMatrix))); // Deep copy
+          }, []);
 
           const getCardName = (id) => cardDetails[id]?.name || '未知卡牌';
 
           const calculatePersonTarotCards = (date) => {
             const digits = date.replace(/-/g, '').split('').map(Number);
             let total = digits.reduce((sum, digit) => sum + digit, 0);
-            
             while (total > 21) {
               const newDigits = total.toString().split('').map(Number);
               total = newDigits.reduce((sum, digit) => sum + digit, 0);
             }
-            
             const soulCard = total;
             let personalityCard;
-            
-            if (soulCard < 10) {
-              personalityCard = soulCard;
-            } else {
+            if (soulCard < 10) { personalityCard = soulCard; } 
+            else {
               const personalityDigits = soulCard.toString().split('').map(Number);
               personalityCard = personalityDigits.reduce((sum, digit) => sum + digit, 0);
             }
             
-            // Shadow card calculation for compatibility: 22 - Soul Card
-            // Ensures it's within Major Arcana range (1-21, or 0 if 22 becomes Fool 0)
-            // Typically 22 is associated with The Fool (0), so 22-soul points to a complementary card.
-            // If soul is 21 (World), shadow is 1 (Magician). If soul is 1 (Magician), shadow is 21 (World).
-            let shadowCardValue = 22 - soulCard;
-            if (shadowCardValue === 0) shadowCardValue = 22; // Or map 22 to Fool 0 if system uses it. Here matrix goes up to 21. For consistency in this system, treat 22 as a special case or simply use value. 
-                                                         // Mary Greer doesn't explicitly use 22-soul for individual. This is a common compatibility technique.
-                                                         // If matrix does not have 22, this logic will need to handle it. The current matrix is 1-21.
-                                                         // Let's assume shadow values must map to 1-21 for the current matrix.
+            const soulValueForShadow = soulCard === 0 ? 22 : soulCard;
+            let compShadowCard = 22 - soulValueForShadow;
             
-            if (shadowCardValue === 22) shadowCardValue = 0; // if Fool is 0, it works
-            // If the matrix strictly uses 1-21, and soul card can be 0 (Fool), 22-0 = 22, this is an issue.
-            // Current code's birth calculator has soul cards 0-21. Compatibility should align.
-            // Let's ensure compatibility soul cards are 1-21 for the provided matrix structure for safety or add card 0 to matrix.
-            // For now, let's keep it simple: 22 - soul, then handle 0. If soul card IS 0 (from birthdate calculation)
-            // then 22 - 0 = 22 (Fool again if 22=0). This card is tricky.
-            // Original compatibility matrix keys start from 1. 
-            // So, if soulCard can be 0 (Fool from calculator), then person.soulCard = 0.
-            // Then 22 - 0 = 22 (effectively 0 or 21 depending on interpretation) for shadow.
-            // Re-evaluating shadow for compatibility to fit matrix:
-            // The provided compatibility matrix has keys 1-21.
-            // If a soulCard calculation yields 0, use 0 directly (if 0 is in matrix) or a substitute (e.g. 21+0 = 21 if Fool is end of cycle)
-            // Let's make sure the compatibility part handles soul card 0 if the birthdate calc produces it.
-            // The matrix is 1-21. So we need to handle "0" cards going into `getCompatibility`.
-            // For now, if a card is 0 (Fool), we can't use 22-0 to get a valid matrix index if 0 is treated special.
-            // Best: Ensure inputs to getCompatibility are 1-21. If soulCard=0, for compatibility analysis one might treat it as 22 and reduce to 4 (as some numerology systems do), or as a wildcard.
-            // For simplicity and alignment with Greer's major arcana: 0 maps to 0 if matrix has 0, or needs special handling.
-            // This implementation of getCompatibility assumes cards are 1-21 due to matrix keys.
-            
-            // To be safe with current matrix (1-21):
-            let queryableSoulCard = soulCard === 0 ? 21 : soulCard; // Example: map Fool 0 to World 21 for matrix lookup for now if 0 isn't keyed.
-                                                              // This is a simplification; a full system would properly handle Fool 0 in compatibility.
-            let queryablePersonalityCard = personalityCard === 0 ? 21 : personalityCard;
+            if (compShadowCard < 0 || compShadowCard > 21) compShadowCard = (compShadowCard % 22 + 22) % 22;
 
-            let compShadowCard = (22 - queryableSoulCard);
-            if(compShadowCard === 0) compShadowCard = 21; // map 22 (effectively) to a value in 1-21 range (e.g., Fool is often end/beg so link to World or Magician)
-            if(compShadowCard > 21) compShadowCard = compShadowCard % 21 === 0 ? 21 : compShadowCard % 21; // basic modulus to fit.
-            if(compShadowCard <=0) compShadowCard = 1; // Failsafe
+            return { soulCard, personalityCard, shadowCard: compShadowCard };
+          };
+          
+          const sumDigits = (n) => {
+            return n.toString().split('').map(Number).reduce((a, b) => a + b, 0);
+          };
+          const reduceToSingleDigit = (n) => {
+            let num = n;
+            while (num > 9) {
+              num = sumDigits(num);
+            }
+            return num;
+          };
+          const calculateFortuneCards = (birthDate, targetYear, targetMonth) => {
+              if (!birthDate) return { yearlyCard: null, monthlyCard: null };
+              const [bYear, bMonth, bDay] = birthDate.split('-').map(Number);
+              
+              const personalBase = sumDigits(bYear) + bMonth + sumDigits(bDay);
+              const yearlyValue = personalBase + sumDigits(targetYear);
+              let yearlyCardRaw = (yearlyValue > 0) ? (yearlyValue - 1) % 22 + 1 : 22;
+              if (yearlyCardRaw === 0) yearlyCardRaw = 22;
+              const yearlyCardId = yearlyCardRaw === 22 ? 0 : yearlyCardRaw;
 
-
-            return { soulCard, personalityCard, shadowCard: compShadowCard }; // Using 'shadowCard' to mean the '22-Soul' compatibility card.
+              const bDaySimplified = reduceToSingleDigit(bDay);
+              const monthlyAdjustment = bMonth + bDaySimplified;
+              const monthlyValue = yearlyCardRaw + parseInt(targetMonth, 10) + monthlyAdjustment;
+              let monthlyCardRaw = (monthlyValue > 0) ? (monthlyValue - 1) % 22 + 1 : 22;
+              if (monthlyCardRaw === 0) monthlyCardRaw = 22;
+              const monthlyCardId = monthlyCardRaw === 22 ? 0 : monthlyCardRaw;
+              
+              return { yearlyCard: yearlyCardId, monthlyCard: monthlyCardId };
           };
 
-
           const getCompatibility = (card1, card2) => {
-            // Adjust card0 to be used if necessary, matrix has 1-21. 
-            // Simplistic: if card is 0, treat it as 21 for lookup in this example as Fool has themes of completion/new cycle similar to world
-            // A more robust system would have 0 in the matrix or special rules.
-            const c1 = card1 === 0 ? 21 : card1; 
-            const c2 = card2 === 0 ? 21 : card2;
+            if (card1 === null || card2 === null) return { score: 0, type: '資訊不足', desc: '無法計算，因為缺少一方或雙方的牌卡資訊。', challenges: '' };
+            
+            // --- FIX: Changed const to let ---
+            let c1 = card1 === 22 ? 0 : card1; 
+            let c2 = card2 === 22 ? 0 : card2;
+            
+            // This reassignment is now valid
+            if (c1 > c2) [c1, c2] = [c2, c1]; 
 
             if (fullCompatibilityMatrix[c1] && fullCompatibilityMatrix[c1][c2]) {
               return fullCompatibilityMatrix[c1][c2];
             }
-            // Symmetric check (e.g. if looking for 2,1 but only 1,2 is defined)
-            if (fullCompatibilityMatrix[c2] && fullCompatibilityMatrix[c2][c1]) {
-              return fullCompatibilityMatrix[c2][c1]; 
-            }
-            return { score: 50, type: '中性關係', desc: '這是一段充滿未知與探索空間的關係。可能需要雙方共同努力來尋找共同點與和諧。', challenges: '缺乏天然的強烈共鳴或明顯的互補性，可能需要更多有意識的溝通和努力來建立深層連結。避免因不明確而產生誤解或漸行漸遠。' }; // Default
+            return { score: 50, type: '中性關係', desc: '這是一段充滿未知與探索空間的關係。', challenges: '缺乏天然的強烈共鳴或明顯的互補性，需要更多有意識的溝通來建立深層連結。' };
           };
-
 
           const getOverallCompatibility = (soulComp, personalityComp, shadowComp) => {
             const avgScore = (soulComp.score + personalityComp.score + shadowComp.score) / 3;
-            let level = '';
-            let advice = '';
-            
+            let level, advice;
             if (avgScore >= 85) { level = '🌟🌟🌟🌟🌟 靈魂高度共鳴'; advice = '你們在多個層面有著深刻的靈魂連結和高度契合，彼此能夠深度理解、支持與啟發。這是一段具有巨大共同進化潛力的關係，共同探索生命的奧秘。'; }
             else if (avgScore >= 75) { level = '🌟🌟🌟🌟 高度心靈契合'; advice = '你們在核心價值與生命目標上有良好的共鳴，個性上也能相互欣賞。透過坦誠溝通與共同學習，可以達到更深的親密與理解，是一段能帶來喜悅與成長的關係。'; }
             else if (avgScore >= 65) { level = '🌟🌟🌟 互補成長夥伴'; advice = '你們的差異可以成為彼此成長的催化劑和學習的鏡子。關係中可能存在一些挑戰，但只要保持開放、尊重與理解，就能將差異轉化為互補的優勢，共同進步。'; }
             else if (avgScore >= 55) { level = '🌟🌟 學習型挑戰關係'; advice = '這段關係中，挑戰與機遇並存。你們的相遇是為了學習重要的人生課題，可能需要更多的努力、耐心和有意識的溝通來化解摩擦。若能共同克服，將帶來深刻的個人成長。'; }
             else { level = '🌟 深層課題探索'; advice = '你們的連結觸及了較深的生命課題或過往模式。關係可能感覺複雜，需要極大的耐心、慈悲和自我反思。這是一段潛力巨大的靈魂功課，重點在於自我覺察與轉化，而非僅僅是關係的和諧。'; }
-            
             return { avgScore: Math.round(avgScore), level, advice };
           };
 
           const handleAnalyze = () => {
-            if (!person1Date || !person2Date || !person1Name || !person2Name) {
-              alert('請填寫所有資訊');
-              return;
-            }
+            if (!person1Date || !person2Date || !person1Name || !person2Name) { alert('請填寫所有資訊'); return; }
             
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+
             const person1Cards = calculatePersonTarotCards(person1Date);
             const person2Cards = calculatePersonTarotCards(person2Date);
+
+            const person1FortuneCards = calculateFortuneCards(person1Date, currentYear, currentMonth);
+            const person2FortuneCards = calculateFortuneCards(person2Date, currentYear, currentMonth);
             
             const soulCompatibility = getCompatibility(person1Cards.soulCard, person2Cards.soulCard);
             const personalityCompatibility = getCompatibility(person1Cards.personalityCard, person2Cards.personalityCard);
-            // The shadowCard from calculatePersonTarotCards IS the (22-Soul) compatibility card
             const shadowCompatibility = getCompatibility(person1Cards.shadowCard, person2Cards.shadowCard); 
-            
             const overall = getOverallCompatibility(soulCompatibility, personalityCompatibility, shadowCompatibility);
-            
-            setResult({
-              person1: { name: person1Name, ...person1Cards },
-              person2: { name: person2Name, ...person2Cards },
-              compatibility: { soul: soulCompatibility, personality: personalityCompatibility, shadow: shadowCompatibility, overall }
+
+            const yearlyCompatibility = getCompatibility(person1FortuneCards.yearlyCard, person2FortuneCards.yearlyCard);
+            const monthlyCompatibility = getCompatibility(person1FortuneCards.monthlyCard, person2FortuneCards.monthlyCard);
+
+            setResult({ 
+                person1: { name: person1Name, ...person1Cards, fortuneCards: person1FortuneCards }, 
+                person2: { name: person2Name, ...person2Cards, fortuneCards: person2FortuneCards }, 
+                compatibility: { 
+                    soul: soulCompatibility, 
+                    personality: personalityCompatibility, 
+                    shadow: shadowCompatibility, 
+                    yearly: yearlyCompatibility,
+                    monthly: monthlyCompatibility,
+                    overall 
+                },
+                timeframe: { year: currentYear, month: currentMonth }
             });
-            setShowDetails({ soul: false, personality: false, shadow: false }); // Reset details view
+            setShowDetails({ soul: false, personality: false, shadow: false, yearly: false, monthly: false });
           };
 
-          const getScoreColor = (score) => {
-            if (score >= 85) return 'text-green-600'; if (score >= 75) return 'text-blue-600';
-            if (score >= 65) return 'text-yellow-600'; if (score >=55) return 'text-orange-600'; return 'text-red-600';
-          };
-          const getScoreBg = (score) => {
-            if (score >= 85) return 'bg-green-100'; if (score >= 75) return 'bg-blue-100';
-            if (score >= 65) return 'bg-yellow-100'; if (score >=55) return 'bg-orange-100'; return 'bg-red-100';
-          };
+          const getScoreColor = (score) => { if (score >= 85) return 'text-green-600'; if (score >= 75) return 'text-blue-600'; if (score >= 65) return 'text-yellow-600'; if (score >=55) return 'text-orange-600'; return 'text-red-600'; };
+          const getScoreBg = (score) => { if (score >= 85) return 'bg-green-100'; if (score >= 75) return 'bg-blue-100'; if (score >= 65) return 'bg-yellow-100'; if (score >=55) return 'bg-orange-100'; return 'bg-red-100'; };
 
           return (
             <div className="max-w-4xl mx-auto p-4 sm:p-6 bg-gradient-to-br from-purple-100 via-pink-100 to-indigo-100 rounded-xl shadow-xl font-sans">
-              <div className="text-center mb-8">
-                <h1 className="text-3xl font-bold text-purple-800 mb-2 flex items-center justify-center gap-2">
-                  <HeartIcon className="w-8 h-8" />
-                  塔羅牌雙人兼容性深度分析
-                </h1>
-                <p className="text-gray-600">依據塔羅原型互動，深入分析兩人的靈魂契合度、個性相容性與共同成長潛力</p>
-              </div>
-
+              <div className="text-center mb-8"><h1 className="text-3xl font-bold text-purple-800 mb-2 flex items-center justify-center gap-2"><HeartIcon className="w-8 h-8" />塔羅牌雙人兼容性深度分析</h1><p className="text-gray-600">依據塔羅原型互動，深入分析兩人的靈魂契合度、個性相容性與共同成長潛力</p></div>
               <div className="grid md:grid-cols-2 gap-6 mb-6">
-                <div className="bg-white rounded-lg p-6 shadow-md">
-                  <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <UsersIcon className="w-5 h-5" /> 第一位夥伴
-                  </h3>
-                  <input type="text" placeholder="姓名/暱稱" value={person1Name} onChange={(e) => setPerson1Name(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md mb-3 focus:ring-2 focus:ring-purple-500"/>
-                  <input type="date" value={person1Date} onChange={(e) => setPerson1Date(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
-                </div>
-                <div className="bg-white rounded-lg p-6 shadow-md">
-                  <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <UsersIcon className="w-5 h-5" /> 第二位夥伴
-                  </h3>
-                  <input type="text" placeholder="姓名/暱稱" value={person2Name} onChange={(e) => setPerson2Name(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md mb-3 focus:ring-2 focus:ring-purple-500"/>
-                  <input type="date" value={person2Date} onChange={(e) => setPerson2Date(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
-                </div>
+                <div className="bg-white rounded-lg p-6 shadow-md"><h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><UsersIcon className="w-5 h-5" /> 第一位夥伴</h3><input type="text" placeholder="姓名/暱稱" value={person1Name} onChange={(e) => setPerson1Name(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md mb-3 focus:ring-2 focus:ring-purple-500"/><input type="date" value={person1Date} onChange={(e) => setPerson1Date(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/></div>
+                <div className="bg-white rounded-lg p-6 shadow-md"><h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><UsersIcon className="w-5 h-5" /> 第二位夥伴</h3><input type="text" placeholder="姓名/暱稱" value={person2Name} onChange={(e) => setPerson2Name(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md mb-3 focus:ring-2 focus:ring-purple-500"/><input type="date" value={person2Date} onChange={(e) => setPerson2Date(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/></div>
               </div>
-
-              <button onClick={handleAnalyze}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-md hover:from-purple-700 hover:to-pink-700 transition-colors font-semibold">
-                <Sparkles className="inline-block w-4 h-4 mr-1" /> 分析兼容性 <Sparkles className="inline-block w-4 h-4 ml-1" />
-              </button>
-
+              <button onClick={handleAnalyze} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-md hover:from-purple-700 hover:to-pink-700 transition-colors font-semibold"><Sparkles className="inline-block w-4 h-4 mr-1" /> 分析兼容性 <Sparkles className="inline-block w-4 h-4 ml-1" /></button>
               {result && (
                 <div className="mt-8 space-y-6 animate-fade-in">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="bg-white rounded-lg p-6 shadow-md">
-                      <h3 className="font-semibold text-gray-800 mb-4">{result.person1.name}的生命牌組</h3>
+                      <h3 className="font-semibold text-gray-800 mb-4">{result.person1.name}的生命與運勢牌組</h3>
                       <div className="space-y-2 text-sm">
                         <p><span className="font-medium text-purple-700">靈魂牌：</span>{result.person1.soulCard} - {getCardName(result.person1.soulCard)}</p>
                         <p><span className="font-medium text-pink-700">個性牌：</span>{result.person1.personalityCard} - {getCardName(result.person1.personalityCard)}</p>
                         <p><span className="font-medium text-indigo-700">互補/陰影牌 (22-Soul)：</span>{result.person1.shadowCard} - {getCardName(result.person1.shadowCard)}</p>
+                        <hr className="my-2"/>
+                        <p><span className="font-medium text-yellow-700">年運牌 ({result.timeframe.year})：</span>{result.person1.fortuneCards.yearlyCard} - {getCardName(result.person1.fortuneCards.yearlyCard)}</p>
+                        <p><span className="font-medium text-blue-700">月運牌 ({result.timeframe.month}月)：</span>{result.person1.fortuneCards.monthlyCard} - {getCardName(result.person1.fortuneCards.monthlyCard)}</p>
                       </div>
                     </div>
                     <div className="bg-white rounded-lg p-6 shadow-md">
-                      <h3 className="font-semibold text-gray-800 mb-4">{result.person2.name}的生命牌組</h3>
+                      <h3 className="font-semibold text-gray-800 mb-4">{result.person2.name}的生命與運勢牌組</h3>
                       <div className="space-y-2 text-sm">
                         <p><span className="font-medium text-purple-700">靈魂牌：</span>{result.person2.soulCard} - {getCardName(result.person2.soulCard)}</p>
                         <p><span className="font-medium text-pink-700">個性牌：</span>{result.person2.personalityCard} - {getCardName(result.person2.personalityCard)}</p>
                         <p><span className="font-medium text-indigo-700">互補/陰影牌 (22-Soul)：</span>{result.person2.shadowCard} - {getCardName(result.person2.shadowCard)}</p>
+                        <hr className="my-2"/>
+                        <p><span className="font-medium text-yellow-700">年運牌 ({result.timeframe.year})：</span>{result.person2.fortuneCards.yearlyCard} - {getCardName(result.person2.fortuneCards.yearlyCard)}</p>
+                        <p><span className="font-medium text-blue-700">月運牌 ({result.timeframe.month}月)：</span>{result.person2.fortuneCards.monthlyCard} - {getCardName(result.person2.fortuneCards.monthlyCard)}</p>
                       </div>
                     </div>
                   </div>
-
-                  <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-6 text-center shadow-lg">
-                    <h3 className="text-xl sm:text-2xl font-bold text-purple-800 mb-2">總體兼容性評級：{result.compatibility.overall.level}</h3>
-                    <div className={`text-3xl sm:text-4xl font-bold ${getScoreColor(result.compatibility.overall.avgScore)} mb-4`}>
-                      {result.compatibility.overall.avgScore}%
-                    </div>
-                    <p className="text-sm sm:text-base text-gray-700 max-w-2xl mx-auto leading-relaxed">{result.compatibility.overall.advice}</p>
-                  </div>
-
+                  <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-6 text-center shadow-lg"><h3 className="text-xl sm:text-2xl font-bold text-purple-800 mb-2">總體兼容性評級 (基於天生牌組)</h3><div className={`text-3xl sm:text-4xl font-bold ${getScoreColor(result.compatibility.overall.avgScore)} mb-4`}>{result.compatibility.overall.avgScore}%</div><p className="text-sm sm:text-base text-gray-700 max-w-2xl mx-auto leading-relaxed">{result.compatibility.overall.advice}</p></div>
+                  
                   <div className="space-y-4">
-                    {[
-                      { key: 'soul', title: '靈魂層面兼容性 (核心本質的共鳴)', icon: <Sparkles className="w-5 h-5 text-purple-600" />, cards: [result.person1.soulCard, result.person2.soulCard], info:"靈魂牌代表最深層的自我，此處的兼容性揭示了你們在生命目的與核心價值上的潛在連結或差異。"},
-                      { key: 'personality', title: '個性層面兼容性 (日常互動的火花)', icon: <StarIcon className="w-5 h-5 text-pink-600" />, cards: [result.person1.personalityCard, result.person2.personalityCard], info:"個性牌反映了外在行為模式與學習課題。此兼容性關乎你們在日常相處、溝通風格及生活方式上的和諧度。"},
-                      { key: 'shadow', title: '互補/陰影整合潛力 (共同成長的課題)', icon: <MoonIcon className="w-5 h-5 text-indigo-600" />, cards: [result.person1.shadowCard, result.person2.shadowCard], info: "此處的『陰影牌』是以『22-靈魂牌』的方式計算，代表靈魂的補償或未被看見的一面。兩人的陰影牌互動，揭示了彼此可能觸發的深層課題，以及共同整合陰影、達成更完整自我的潛力。" }
-                    ].map(item => (
+                    {[{ key: 'soul', title: '靈魂層面兼容性 (核心本質的共鳴)', icon: <Sparkles className="w-5 h-5 text-purple-600" />, cards: [result.person1.soulCard, result.person2.soulCard], info:"靈魂牌代表最深層的自我，此處的兼容性揭示了你們在生命目的與核心價值上的潛在連結或差異。"},{ key: 'personality', title: '個性層面兼容性 (日常互動的火花)', icon: <StarIcon className="w-5 h-5 text-pink-600" />, cards: [result.person1.personalityCard, result.person2.personalityCard], info:"個性牌反映了外在行為模式與學習課題。此兼容性關乎你們在日常相處、溝通風格及生活方式上的和諧度。"},{ key: 'shadow', title: '互補/陰影整合潛力 (共同成長的課題)', icon: <Shield className="w-5 h-5 text-indigo-600" />, cards: [result.person1.shadowCard, result.person2.shadowCard], info: "此處的『陰影牌』是以『22-靈魂牌』的方式計算，代表靈魂的補償或未被看見的一面。兩人的陰影牌互動，揭示了彼此可能觸發的深層課題，以及共同整合陰影、達成更完整自我的潛力。" }].map(item => (
                       <div key={item.key} className="bg-white rounded-lg p-6 shadow-md">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between cursor-pointer"
-                             onClick={() => setShowDetails(prev => ({...prev, [item.key]: !prev[item.key]}))}>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between cursor-pointer" onClick={() => setShowDetails(prev => ({...prev, [item.key]: !prev[item.key]}))}>
                           <h3 className="font-semibold text-gray-800 flex items-center gap-2 mb-2 sm:mb-0 text-lg">{item.icon} {item.title}</h3>
-                          <div className="flex items-center gap-2 sm:gap-4 ml-auto">
-                            <span className={`text-xl sm:text-2xl font-bold ${getScoreColor(result.compatibility[item.key].score)}`}>
-                              {result.compatibility[item.key].score}%
-                            </span>
-                            <span className={`px-2 py-1 sm:px-3 rounded-full text-xs sm:text-sm font-medium ${getScoreBg(result.compatibility[item.key].score)} ${getScoreColor(result.compatibility[item.key].score)}`}>
-                              {result.compatibility[item.key].type}
-                            </span>
-                            <span className="text-purple-600 text-xl">
-                               {showDetails[item.key] ? <ChevronUp /> : <ChevronDown />}
-                            </span>
-                          </div>
+                          <div className="flex items-center gap-2 sm:gap-4 ml-auto"><span className={`text-xl sm:text-2xl font-bold ${getScoreColor(result.compatibility[item.key].score)}`}>{result.compatibility[item.key].score}%</span><span className={`px-2 py-1 sm:px-3 rounded-full text-xs sm:text-sm font-medium ${getScoreBg(result.compatibility[item.key].score)} ${getScoreColor(result.compatibility[item.key].score)}`}>{result.compatibility[item.key].type}</span><span className="text-purple-600 text-xl">{showDetails[item.key] ? <ChevronUp /> : <ChevronDown />}</span></div>
                         </div>
-                        {showDetails[item.key] && (
-                          <div className="mt-4 pt-4 border-t animate-fade-in text-sm">
-                             <div className="mb-3 p-3 bg-gray-50 rounded-md">
-                               <p className="font-semibold text-gray-700">互動牌組：</p>
-                               <p className="text-gray-600"> {getCardName(item.cards[0])} ({item.cards[0]}) <HeartIcon className="inline text-red-500 mx-1" /> {getCardName(item.cards[1])} ({item.cards[1]})</p>
-                             </div>
-                            <h5 className="font-semibold text-gray-700 mb-1">能量互動描述：</h5>
-                            <p className="text-gray-600 mb-3 leading-relaxed">{result.compatibility[item.key].desc}</p>
-                            
-                            <h5 className="font-semibold text-red-700 mb-1 flex items-center gap-1"><AlertCircleIcon className="w-4 h-4" /> 潛在挑戰與成長點：</h5>
-                            <p className="text-red-600 bg-red-50 p-3 rounded-md mb-3 leading-relaxed">{result.compatibility[item.key].challenges || "共同探索與理解是關鍵。"}</p>
-                            
-                            {item.info && (
-                              <div className="mt-3 p-3 bg-indigo-50 rounded-lg border-l-4 border-indigo-400">
-                                <p className="text-sm text-indigo-700 flex items-start">
-                                  <InfoIcon className="w-4 h-4 inline mr-2 mt-0.5 flex-shrink-0" />
-                                  <span>{item.info}</span>
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        {showDetails[item.key] && (<div className="mt-4 pt-4 border-t animate-fade-in text-sm"><div className="mb-3 p-3 bg-gray-50 rounded-md"><p className="font-semibold text-gray-700">互動牌組：</p><p className="text-gray-600"> {getCardName(item.cards[0])} ({item.cards[0]}) <HeartIcon className="inline text-red-500 mx-1" /> {getCardName(item.cards[1])} ({item.cards[1]})</p></div><h5 className="font-semibold text-gray-700 mb-1">能量互動描述：</h5><p className="text-gray-600 mb-3 leading-relaxed">{result.compatibility[item.key].desc}</p><h5 className="font-semibold text-red-700 mb-1 flex items-center gap-1"><AlertCircleIcon className="w-4 h-4" /> 潛在挑戰與成長點：</h5><p className="text-red-600 bg-red-50 p-3 rounded-md mb-3 leading-relaxed">{result.compatibility[item.key].challenges || "共同探索與理解是關鍵。"}</p>{item.info && (<div className="mt-3 p-3 bg-indigo-50 rounded-lg border-l-4 border-indigo-400"><p className="text-sm text-indigo-700 flex items-start"><InfoIcon className="w-4 h-4 inline mr-2 mt-0.5 flex-shrink-0" /><span>{item.info}</span></p></div>)}</div>)}
                       </div>
                     ))}
                   </div>
 
-                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 shadow-lg">
-                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2 text-xl">
-                      <BookOpen /> 關係發展深度建議
+                  {/* --- NEW SECTION FOR FORTUNE CARDS --- */}
+                  <div className="bg-gradient-to-r from-indigo-100 to-blue-100 rounded-lg p-6 shadow-lg mt-6">
+                    <h3 className="text-xl sm:text-2xl font-bold text-indigo-800 mb-2 text-center flex items-center justify-center gap-2">
+                        <ClockIcon /> 當前時運互動分析 ({result.timeframe.year}年{result.timeframe.month}月)
                     </h3>
-                    <div className="space-y-4 text-sm text-gray-700 leading-relaxed">
-                      <p>• <strong>深化靈魂連結 ({result.compatibility.soul.score}%):</strong> 定期進行深度對話，分享內心的夢想、恐懼與靈性體悟。探索你們靈魂牌 ({getCardName(result.person1.soulCard)} & {getCardName(result.person2.soulCard)}) 之間的共鳴與課題 ({result.compatibility.soul.challenges})。共同參與能滋養靈魂的活動。</p>
-                      <p>• <strong>促進個性互動 ({result.compatibility.personality.score}%):</strong> 欣賞並學習彼此個性牌 ({getCardName(result.person1.personalityCard)} & {getCardName(result.person2.personalityCard)}) 的優點，尊重差異。將個性上的挑戰 ({result.compatibility.personality.challenges}) 視為學習和共同成長的機會，練習有效的溝通技巧。</p>
-                      <p>• <strong>整合陰影課題 ({result.compatibility.shadow.score}%):</strong> 當衝突或不適出現時，觀察是否觸發了彼此互補/陰影牌 ({getCardName(result.person1.shadowCard)} & {getCardName(result.person2.shadowCard)}) 所代表的面向。這些互動 ({result.compatibility.shadow.challenges}) 提供了共同療癒和整合內在陰影的寶貴機會。勇敢面對，誠實分享。</p>
-                      <p>• <strong>共同創造與成長:</strong> 設定共同的靈性或個人成長目標。利用你們牌組的綜合力量與智慧，相互支持，共同進化。記住，任何挑戰都是關係深化與個人成熟的墊腳石。持續的愛、尊重、理解與溝通是關係長久美滿的關鍵。</p>
-                       <p className="mt-4 pt-4 border-t border-purple-200 text-xs text-gray-500">
-                        <InfoIcon className="inline w-3 h-3 mr-1" />
-                        免責聲明：此分析僅供個人探索與娛樂參考，不能替代專業的心理諮詢或關係輔導。請以開放和覺察的態度來對待結果。
-                      </p>
-                    </div>
+                    <p className="text-center text-sm text-gray-600 max-w-2xl mx-auto">此部分分析您們在當前時間週期下的能量互動，提供順勢而為的指引。這與天生牌組的影響不同，屬於短期、動態的能量流。</p>
                   </div>
+                   <div className="space-y-4">
+                     {[{ key: 'yearly', title: `年度能量共振 (${result.timeframe.year}年運牌)`, icon: <SunIcon className="w-5 h-5 text-yellow-600" />, cards: [result.person1.fortuneCards.yearlyCard, result.person2.fortuneCards.yearlyCard], info: `年運牌揭示了兩人在 ${result.timeframe.year} 年共同面對的宏觀主題、學習課題與發展機遇。這反映了你們在這一整年中的能量基調是和諧共振還是需要磨合。`},{ key: 'monthly', title: `月度主題互動 (${result.timeframe.month}月運牌)`, icon: <MoonIcon className="w-5 h-5 text-blue-600" />, cards: [result.person1.fortuneCards.monthlyCard, result.person2.fortuneCards.monthlyCard], info: `月運牌則聚焦於 ${result.timeframe.month} 月的具體能量流動。它顯示了在年度大主題下，本月您們的互動模式、情緒焦點以及可能遇到的短期事件或挑戰。` }].map(item => (
+                      <div key={item.key} className="bg-white rounded-lg p-6 shadow-md">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between cursor-pointer" onClick={() => setShowDetails(prev => ({...prev, [item.key]: !prev[item.key]}))}>
+                          <h3 className="font-semibold text-gray-800 flex items-center gap-2 mb-2 sm:mb-0 text-lg">{item.icon} {item.title}</h3>
+                          <div className="flex items-center gap-2 sm:gap-4 ml-auto"><span className={`text-xl sm:text-2xl font-bold ${getScoreColor(result.compatibility[item.key].score)}`}>{result.compatibility[item.key].score}%</span><span className={`px-2 py-1 sm:px-3 rounded-full text-xs sm:text-sm font-medium ${getScoreBg(result.compatibility[item.key].score)} ${getScoreColor(result.compatibility[item.key].score)}`}>{result.compatibility[item.key].type}</span><span className="text-purple-600 text-xl">{showDetails[item.key] ? <ChevronUp /> : <ChevronDown />}</span></div>
+                        </div>
+                        {showDetails[item.key] && (<div className="mt-4 pt-4 border-t animate-fade-in text-sm"><div className="mb-3 p-3 bg-gray-50 rounded-md"><p className="font-semibold text-gray-700">互動牌組：</p><p className="text-gray-600"> {getCardName(item.cards[0])} ({item.cards[0]}) <HeartIcon className="inline text-red-500 mx-1" /> {getCardName(item.cards[1])} ({item.cards[1]})</p></div><h5 className="font-semibold text-gray-700 mb-1">能量互動描述：</h5><p className="text-gray-600 mb-3 leading-relaxed">{result.compatibility[item.key].desc}</p><h5 className="font-semibold text-red-700 mb-1 flex items-center gap-1"><AlertCircleIcon className="w-4 h-4" /> 潛在挑戰與成長點：</h5><p className="text-red-600 bg-red-50 p-3 rounded-md mb-3 leading-relaxed">{result.compatibility[item.key].challenges || "共同探索與理解是關鍵。"}</p>{item.info && (<div className="mt-3 p-3 bg-indigo-50 rounded-lg border-l-4 border-indigo-400"><p className="text-sm text-indigo-700 flex items-start"><InfoIcon className="w-4 h-4 inline mr-2 mt-0.5 flex-shrink-0" /><span>{item.info}</span></p></div>)}</div>)}
+                      </div>
+                    ))}
+                   </div>
+
+
+                  <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 shadow-lg"><h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2 text-xl"><BookOpen /> 關係發展深度建議</h3><div className="space-y-4 text-sm text-gray-700 leading-relaxed"><p>• <strong>深化靈魂連結 ({result.compatibility.soul.score}%):</strong> 定期進行深度對話，分享內心的夢想、恐懼與靈性體悟。探索你們靈魂牌 ({getCardName(result.person1.soulCard)} & {getCardName(result.person2.soulCard)}) 之間的共鳴與課題 ({result.compatibility.soul.challenges})。共同參與能滋養靈魂的活動。</p><p>• <strong>促進個性互動 ({result.compatibility.personality.score}%):</strong> 欣賞並學習彼此個性牌 ({getCardName(result.person1.personalityCard)} & {getCardName(result.person2.personalityCard)}) 的優點，尊重差異。將個性上的挑戰 ({result.compatibility.personality.challenges}) 視為學習和共同成長的機會，練習有效的溝通技巧。</p><p>• <strong>整合陰影課題 ({result.compatibility.shadow.score}%):</strong> 當衝突或不適出現時，觀察是否觸發了彼此互補/陰影牌 ({getCardName(result.person1.shadowCard)} & {getCardName(result.person2.shadowCard)}) 所代表的面向。這些互動 ({result.compatibility.shadow.challenges}) 提供了共同療癒和整合內在陰影的寶貴機會。勇敢面對，誠實分享。</p><p>• <strong>把握當前時運:</strong> 關注您們在 {result.timeframe.year} 年的年運牌 ({getCardName(result.person1.fortuneCards.yearlyCard)} & {getCardName(result.person2.fortuneCards.yearlyCard)}) 互動，以及 {result.timeframe.month} 月月運牌 ({getCardName(result.person1.fortuneCards.monthlyCard)} & {getCardName(result.person2.fortuneCards.monthlyCard)}) 的互動。這能幫助您們順應當前的能量流，共同應對機遇與挑戰。</p><p>• <strong>共同創造與成長:</strong> 設定共同的靈性或個人成長目標。利用你們牌組的綜合力量與智慧，相互支持，共同進化。記住，任何挑戰都是關係深化與個人成熟的墊腳石。持續的愛、尊重、理解與溝通是關係長久美滿的關鍵。</p><p className="mt-4 pt-4 border-t border-purple-200 text-xs text-gray-500"><InfoIcon className="inline w-3 h-3 mr-1" />免責聲明：此分析僅供個人探索與娛樂參考，不能替代專業的心理諮詢或關係輔導。請以開放和覺察的態度來對待結果。</p></div></div>
                 </div>
               )}
             </div>
           );
         };
+        
+        // --- FORTUNE CARD CALCULATOR ---
+        const FortuneCardCalculator = () => {
+          const [birthDate, setBirthDate] = useState('');
+          const [targetYear, setTargetYear] = useState(new Date().getFullYear());
+          const [targetMonth, setTargetMonth] = useState(new Date().getMonth() + 1);
+          const [result, setResult] = useState(null);
+          const [showProcess, setShowProcess] = useState(false);
+          const [showInfo, setShowInfo] = useState(false);
+
+          const sumDigits = (n) => {
+            return n.toString().split('').map(Number).reduce((a, b) => a + b, 0);
+          };
+
+          const reduceToSingleDigit = (n) => {
+            let num = n;
+            while (num > 9) {
+              num = sumDigits(num);
+            }
+            return num;
+          };
+
+          const handleCalculate = () => {
+            if (!birthDate) {
+              alert('請輸入您的出生日期');
+              return;
+            }
+
+            const [bYear, bMonth, bDay] = birthDate.split('-').map(Number);
+            const steps = [];
+
+            // --- Yearly Card Calculation ---
+            const yearlySteps = [];
+            const bYearSum = sumDigits(bYear);
+            const bDaySum = sumDigits(bDay);
+            yearlySteps.push(`出生年各位數字之和: ${bYear.toString().split('').join(' + ')} = ${bYearSum}`);
+            yearlySteps.push(`出生日各位數字之和: ${bDay.toString().split('').join(' + ')} = ${bDaySum}`);
+            
+            const personalBase = bYearSum + bMonth + bDaySum;
+            yearlySteps.push(`個人基數 = (年和) + (月) + (日和) = ${bYearSum} + ${bMonth} + ${bDaySum} = ${personalBase}`);
+
+            const targetYearSum = sumDigits(targetYear);
+            yearlySteps.push(`目標年份數字之和: ${targetYear.toString().split('').join(' + ')} = ${targetYearSum}`);
+            
+            const yearlyValue = personalBase + targetYearSum;
+            yearlySteps.push(`年運數值 = 個人基數 + 目標年份和 = ${personalBase} + ${targetYearSum} = ${yearlyValue}`);
+
+            let yearlyCardRaw = (yearlyValue > 0) ? (yearlyValue - 1) % 22 + 1 : 22;
+            if (yearlyCardRaw === 0) yearlyCardRaw = 22;
+            yearlySteps.push(`年運卡數值 (1-22) = (年運數值 - 1) % 22 + 1 = ${yearlyCardRaw}`);
+            if (yearlyCardRaw === 22) yearlySteps.push(`結果為 22，對應塔羅牌 0 (愚者)`);
+            const finalYearlyCardId = yearlyCardRaw === 22 ? 0 : yearlyCardRaw;
+
+            // --- Monthly Card Calculation ---
+            const monthlySteps = [];
+            monthlySteps.push(`從年運卡數值開始: ${yearlyCardRaw}`);
+
+            const bDaySimplified = reduceToSingleDigit(bDay);
+            monthlySteps.push(`出生日化簡值: ${bDay} -> ${bDay.toString().split('').join('+')} -> ... -> ${bDaySimplified}`);
+            
+            const monthlyAdjustment = bMonth + bDaySimplified;
+            monthlySteps.push(`個人月份調整值 = 出生月 + 出生日化簡值 = ${bMonth} + ${bDaySimplified} = ${monthlyAdjustment}`);
+
+            const monthlyValue = yearlyCardRaw + parseInt(targetMonth, 10) + monthlyAdjustment;
+            monthlySteps.push(`月運數值 = 年運卡數值 + 目標月份 + 調整值 = ${yearlyCardRaw} + ${targetMonth} + ${monthlyAdjustment} = ${monthlyValue}`);
+
+            let monthlyCardRaw = (monthlyValue > 0) ? (monthlyValue - 1) % 22 + 1 : 22;
+            if (monthlyCardRaw === 0) monthlyCardRaw = 22;
+            monthlySteps.push(`月運卡數值 (1-22) = (月運數值 - 1) % 22 + 1 = ${monthlyCardRaw}`);
+            if (monthlyCardRaw === 22) monthlySteps.push(`結果為 22，對應塔羅牌 0 (愚者)`);
+            const finalMonthlyCardId = monthlyCardRaw === 22 ? 0 : monthlyCardRaw;
+
+            setResult({
+              yearlyCard: finalYearlyCardId,
+              monthlyCard: finalMonthlyCardId,
+              steps: { yearly: yearlySteps, monthly: monthlySteps }
+            });
+            setShowProcess(false);
+          };
+
+          const FortuneCardInfo = () => (
+             <div className="mt-8 p-6 bg-white rounded-lg shadow-md space-y-6 text-gray-700 transition-all duration-500 ease-in-out">
+                <h2 className="text-2xl font-bold text-purple-800 text-center flex items-center justify-center gap-2"><BookOpen /> 年運卡和月運卡的基礎原理與具體計算方法</h2>
+                
+                <section>
+                    <h3 className="text-xl font-semibold text-purple-700 mb-2">基礎原理</h3>
+                    <div className="pl-4 border-l-4 border-purple-300">
+                        <p><strong>核心概念:</strong> 年運卡和月運卡系統基於生命數字學和塔羅數秘學，通過數學計算將個人的出生信息與時間周期相結合，得出對應的塔羅牌來預測運勢趨勢。</p>
+                        <p><strong>數學基礎:</strong> 主要運用數字化簡原理（將複雜數字相加化簡）與循環映射（利用模運算建立時間與卡牌的對應關係），並以個人出生日期作為獨特的個人基數。</p>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 className="text-xl font-semibold text-purple-700 mb-2">年運卡計算方法</h3>
+                    <p className="mb-2">此計算器採用基於「個人基數」的詳細步驟法：</p>
+                    <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-800 space-y-2">
+                        <p><strong>第一步：計算個人基數</strong><br/><code>個人基數 = (出生年各位數字之和) + (出生月) + (出生日各位數字之和)</code></p>
+                        <p><strong>第二步：結合目標年份</strong><br/><code>年運數值 = 個人基數 + (目標年份各位數字之和)</code></p>
+                        <p><strong>第三步：化簡至塔羅範圍 (1-22)</strong><br/><code>年運卡數值 = (年運數值 - 1) % 22 + 1</code><br/><span className="text-xs">(若結果為0，則視為22，對應愚者牌0號)</span></p>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 className="text-xl font-semibold text-purple-700 mb-2">月運卡計算方法</h3>
+                    <div className="bg-green-50 rounded-lg p-4 text-sm text-green-800 space-y-2">
+                        <p><strong>第一步：獲得年運卡數值</strong><br/><span>使用上述方法計算出的年運卡號碼（1-22）。</span></p>
+                        <p><strong>第二步：計算月份調整值</strong><br/><code>個人月份調整值 = (出生月) + (出生日化簡值)</code><br/><span className="text-xs">(出生日化簡值 = 將生日的數字相加，直到變為個位數)</span></p>
+                        <p><strong>第三步：結合目標月份</strong><br/><code>月運數值 = 年運卡數值 + 目標月份 + 個人月份調整值</code><br/><code>月運卡數值 = (月運數值 - 1) % 22 + 1</code><br/><span className="text-xs">(同樣，若結果為0，則視為22，對應愚者牌0號)</span></p>
+                    </div>
+                </section>
+                
+                <section>
+                    <h3 className="text-xl font-semibold text-purple-700 mb-2">實際應用說明</h3>
+                    <div className="grid md:grid-cols-2 gap-4 text-sm">
+                        <div className="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-500">
+                            <h4 className="font-bold text-purple-800">年運卡含義</h4>
+                            <p>代表您在目標年份中，整年的主要能量趨勢、核心課題和人生主題。</p>
+                        </div>
+                        <div className="bg-pink-50 p-3 rounded-lg border-l-4 border-pink-500">
+                            <h4 className="font-bold text-pink-800">月運卡含義</h4>
+                            <p>代表在年運的大背景下，您在目標月份會遇到的具體運勢走向和需要關注的焦點。</p>
+                        </div>
+                    </div>
+                    <p className="mt-4 text-sm"><strong>組合解讀：</strong> 年運卡是大背景，月運卡為具體表現。將兩者結合解讀，可以獲得更全面和精確的指導。例如，若年運卡是「塔」（劇變），月運卡是「星星」（希望），可能意味著在充滿變動的一年中，該月份會出現帶來希望與療癒的契機。</p>
+                </section>
+
+             </div>
+          );
+
+          const FortuneCardDisplay = ({ icon, title, cardId, bgColor, textColor, borderColor }) => {
+            if (cardId === null || cardId === undefined || !cardDetails[cardId]) return null;
+            const details = cardDetails[cardId];
+            return (
+              <div className={`${bgColor} rounded-lg p-4 shadow-md border-l-4 ${borderColor}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  {icon}
+                  <h3 className={`font-semibold ${textColor}`}>{title}</h3>
+                </div>
+                <div className={`text-3xl font-bold ${textColor} mb-1`}>
+                  {cardId} - {details.name}
+                </div>
+                <p className={`text-md font-semibold ${textColor} mb-2`}>{details.shortMeaning}</p>
+              </div>
+            );
+          };
+
+          return (
+            <div className="max-w-3xl mx-auto p-4 sm:p-6 bg-gradient-to-br from-indigo-100 to-blue-100 rounded-xl shadow-lg md:shadow-xl font-sans">
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-indigo-800 mb-2 flex items-center justify-center gap-2">
+                  <ClockIcon /> 流年/流月運勢計算器
+                </h1>
+                <p className="text-gray-600">結合您的出生日期與特定時間，揭示年度與月度能量主題</p>
+              </div>
+
+              <div className="bg-white rounded-lg p-6 shadow-md mb-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"><Calendar />您的出生日期</label>
+                        <input type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"/>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"><TargetIcon />目標年份</label>
+                        <input type="number" value={targetYear} onChange={(e) => setTargetYear(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500"/>
+                    </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2"><MoonIcon />目標月份</label>
+                  <select value={targetMonth} onChange={(e) => setTargetMonth(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 bg-white">
+                    {[...Array(12).keys()].map(i => <option key={i+1} value={i+1}>{i+1}月</option>)}
+                  </select>
+                </div>
+                <button onClick={handleCalculate} className="w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 transition-colors font-semibold flex items-center justify-center gap-2">
+                  <Sparkles className="w-5 h-5" /> 計算我的運勢牌卡
+                </button>
+              </div>
+
+              {result && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="bg-white rounded-lg p-6 shadow-md">
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">
+                      您在 {targetYear} 年 {targetMonth} 月的運勢牌卡
+                    </h2>
+                    <div className="grid grid-cols-1 gap-6">
+                       <FortuneCardDisplay 
+                          icon={<SunIcon className="text-yellow-600" />} 
+                          title={`${targetYear} 年運卡`}
+                          cardId={result.yearlyCard}
+                          bgColor="bg-yellow-100"
+                          textColor="text-yellow-900"
+                          borderColor="border-yellow-500"
+                        />
+                       <FortuneCardDisplay 
+                          icon={<MoonIcon className="text-blue-600" />} 
+                          title={`${targetMonth} 月運卡`}
+                          cardId={result.monthlyCard}
+                          bgColor="bg-blue-100"
+                          textColor="text-blue-900"
+                          borderColor="border-blue-500"
+                        />
+                    </div>
+                     <div className="mt-4 p-4 bg-gray-50 rounded-lg text-sm">
+                        <h4 className="font-semibold text-gray-700 mb-2">運勢解讀提示：</h4>
+                        <p className="text-gray-600">您的年運卡 <strong className="text-yellow-800">{cardDetails[result.yearlyCard].name}</strong> 設定了 {targetYear} 年的整體基調與學習主題。在此大背景下，您的月運卡 <strong className="text-blue-800">{cardDetails[result.monthlyCard].name}</strong> 則揭示了 {targetMonth} 月份需要特別關注的具體能量、機遇或挑戰。請結合兩張牌的意義進行思考。
+                        <br/>例如，<strong>{cardDetails[result.yearlyCard].shortMeaning.split('、')[0]}</strong> 的年度主題，在本月可能透過 <strong>{cardDetails[result.monthlyCard].shortMeaning.split('、')[0]}</strong> 的形式顯現。</p>
+                     </div>
+                  </div>
+                  
+                  <button onClick={() => setShowProcess(!showProcess)} className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center gap-1">
+                    {showProcess ? '隱藏' : '顯示'}計算過程 <span className="text-indigo-600">{showProcess ? <ChevronUp /> : <ChevronDown />}</span>
+                  </button>
+
+                  {showProcess && (
+                    <div className="mt-2 p-4 bg-white rounded-lg shadow-md animate-fade-in space-y-4">
+                      <div>
+                        <h4 className="font-semibold text-gray-700 mb-2 border-b pb-1">年運卡計算步驟：</h4>
+                        <div className="space-y-1 font-mono text-sm text-gray-600">
+                          {result.steps.yearly.map((step, index) => <p key={index}>{step}</p>)}
+                        </div>
+                      </div>
+                       <div>
+                        <h4 className="font-semibold text-gray-700 mb-2 border-b pb-1">月運卡計算步驟：</h4>
+                        <div className="space-y-1 font-mono text-sm text-gray-600">
+                          {result.steps.monthly.map((step, index) => <p key={index}>{step}</p>)}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              <div className="text-center mt-8">
+                <button onClick={() => setShowInfo(!showInfo)} className="inline-flex items-center gap-2 px-6 py-3 bg-white text-indigo-700 rounded-full shadow-md hover:bg-indigo-50 transition-transform transform hover:scale-105">
+                  <span className="font-semibold">了解運勢卡計算原理</span>
+                  {showInfo ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
+              </div>
+              {showInfo && <FortuneCardInfo />}
+            </div>
+          );
+        };
+
 
         // --- MAIN APP COMPONENT ---
         const App = () => {
-          const [activeCalculator, setActiveCalculator] = useState('birth'); // 'birth' or 'compatibility'
+          const [activeCalculator, setActiveCalculator] = useState('birth'); // 'birth', 'compatibility', 'fortune'
 
           const navButtonBaseClass = "px-4 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-offset-2";
           const activeNavButtonClass = "bg-purple-600 text-white shadow-lg transform scale-105 focus:ring-purple-500";
@@ -1058,7 +992,7 @@
           return (
             <div className="container mx-auto p-4 min-h-screen">
               <nav className="text-center mb-6 sm:mb-10 p-4 bg-purple-200 rounded-lg shadow-md">
-                <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-4">
+                <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-2 md:space-x-4">
                     <button 
                         onClick={() => setActiveCalculator('birth')}
                         className={`${navButtonBaseClass} ${activeCalculator === 'birth' ? activeNavButtonClass : inactiveNavButtonClass}`}
@@ -1071,20 +1005,31 @@
                     >
                         <HeartIcon className="inline-block w-5 h-5 mr-2" /> 雙人合盤解析
                     </button>
+                    <button 
+                        onClick={() => setActiveCalculator('fortune')}
+                        className={`${navButtonBaseClass} ${activeCalculator === 'fortune' ? activeNavButtonClass : inactiveNavButtonClass}`}
+                    >
+                        <ClockIcon className="inline-block w-5 h-5 mr-2" /> 流年運勢分析
+                    </button>
                 </div>
               </nav>
 
               {activeCalculator === 'birth' && <TarotBirthCardsCalculator />}
               {activeCalculator === 'compatibility' && <TarotCompatibilitySystem />}
+              {activeCalculator === 'fortune' && <FortuneCardCalculator />}
               
               <footer className="text-center text-gray-500 mt-12 pb-6 text-sm">
-                塔羅靈數啟迪工具 © {new Date().getFullYear()} 探索自我，深化連結。
+                塔羅靈數啟迪工具 © {new Date().getFullYear()} 探索自我，深化連結，洞悉運勢。
               </footer>
             </div>
           );
         };
+        
+        // --- FIX: Updated to React 18 createRoot API ---
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
 
-        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
