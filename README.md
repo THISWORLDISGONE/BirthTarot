@@ -1,3 +1,4 @@
+
 # 塔羅生命靈數計算器 (Tarot Birth Cards Calculator)
 
 🔮 **極端詳細的塔羅生命藍圖分析工具**
