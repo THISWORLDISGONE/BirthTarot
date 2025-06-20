@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>塔羅生命靈數計算器</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // Simple icon replacements
+        const Calendar = () => <span>📅</span>;
+        const Sparkles = ({ className }) => <span className={className}>✨</span>;
+        const Hash = ({ className }) => <span className={className}>#</span>;
+        const User = ({ className }) => <span className={className}>👤</span>;
+        const BookOpen = () => <span>📖</span>;
+        const ChevronDown = ({ className }) => <span className={className}>▼</span>;
+        const ChevronUp = ({ className }) => <span className={className}>▲</span>;
+        const Gift = ({ className }) => <span className={className}>🎁</span>;
+        const Shield = ({ className }) => <span className={className}>🛡️</span>;
+
+        // 擴充後的卡牌詳細資料，包含名稱、簡短含義、靈魂使命與個性特質
+        const cardDetails = {
+          0: {
+            name: '愚者',
+            shortMeaning: '純真、勇氣、無限可能',
+            soulMission: '0號愚者作為靈魂卡牌時，靈魂使命是學習無條件的信任與勇氣，擁抱未知的人生旅程。內在潛能包括純真的智慧和與宇宙直接連結的能力。',
+            personalityTrait: '作為個性卡牌時，表現為樂觀充滿活力的外在特質，傾向於衝動決策和勇於嘗試新事物。心理層面代表原始自我和無意識智慧，潛能是無限的可能性和創新思維，挑戰則是魯莽行為和缺乏方向感。'
+          },
+          1: {
+            name: '魔術師',
+            shortMeaning: '創造力、意志力、新開始',
+            soulMission: '1號魔術師的靈魂使命是學習如何將靈性能量轉化為物質現實，成為天地之間的橋樑。需要發展專注力、創造力和整合不同元素的智慧。',
+            personalityTrait: '作為個性卡牌時展現自信魅力、目標導向的特質，善於規劃執行和溝通說服。魔術師象徵意識的力量和自我實現能力，潛能包括創造顯化和多元才能，但需警惕操控傾向和自我膨脹。'
+          },
+          2: {
+            name: '女祭司',
+            shortMeaning: '直覺、潛意識、神秘智慧',
+            soulMission: '2號女祭司的靈魂使命是發展直覺智慧，成為內在與外在世界的守護者。靈性潛能包括深度直覺和接收宇宙訊息的能力。',
+            personalityTrait: '個性層面表現為神秘內斂、具有深度的特質，傾向於觀察反思和深層次交流。女祭司代表潛意識智慧和陰性原則，擁有靈性洞察的潛能，但可能過度內向或與現實脫節。'
+          },
+          3: {
+            name: '女帝',
+            shortMeaning: '豐饒、母性、創造與成長',
+            soulMission: '3號女帝學習無條件的愛與創造，成為生命力的源泉。內在潛能是豐盛創造力和與自然的深度連結。',
+            personalityTrait: '外在表現為溫暖關愛、富有創造力的照顧者特質。女帝象徵創造力和無條件的愛，能創造豐盛和滋養他人，挑戰是過度保護和缺乏邊界。'
+          },
+          4: {
+            name: '皇帝',
+            shortMeaning: '權威、結構、穩定基礎',
+            soulMission: '4號皇帝的靈魂使命是學習建立穩定的結構，成為智慧的領導者。需要發展責任感、公正和領導智慧。',
+            personalityTrait: '個性表現為權威實際、有組織的領導者特質，重視秩序效率和目標達成。皇帝代表建設性的男性力量，潛能是領導能力和建立秩序，需注意過度控制和缺乏彈性。'
+          },
+          5: {
+            name: '教皇',
+            shortMeaning: '精神指引、傳統、教育',
+            soulMission: '5號教皇成為智慧的傳承者，建立精神與物質的橋樑。靈性潛能包括教導能力和傳統智慧。',
+            personalityTrait: '個性特質是傳統有原則、具有教導傾向，重視道德規範和深度交流。教皇代表集體無意識和傳統智慧，能進行智慧傳承和精神指導，但可能過度保守或權威主義。'
+          },
+          6: {
+            name: '戀人',
+            shortMeaning: '愛情、選擇、和諧關係',
+            soulMission: '6號戀人學習愛的真諦，在關係中找到整合與平衡。需要發展愛、選擇的智慧和整合能力。',
+            personalityTrait: '外在表現為魅力善交際、重視關係的特質。戀人代表整合過程和愛的力量，潛能是和諧關係和美學天賦，挑戰是猶豫不決和依賴他人。'
+          },
+          7: {
+            name: '戰車',
+            shortMeaning: '決心、勝利、掌控方向',
+            soulMission: '7號戰車學習掌控內在力量，朝向目標勇敢前進。靈魂潛能是意志力和整合對立力量的能力。',
+            personalityTrait: '個性表現為決心堅定、目標導向的競爭者。戰車代表自我控制和意志的勝利，擁有強大意志力和目標達成能力，但可能過度競爭或固執己見。'
+          },
+          8: {
+            name: '力量',
+            shortMeaning: '內在力量、勇氣、耐心',
+            soulMission: '8號力量學習內在真正的力量，以愛征服恐懼。靈性潛能包括內在勇氣和治療能力。',
+            personalityTrait: '個性表現為溫和而堅定、有耐心的治療性存在。力量代表內在的勇氣和愛的力量，能以溫柔的力量面對挑戰，需避免過度犧牲和壓抑情感。'
+          },
+          9: {
+            name: '隱士',
+            shortMeaning: '內省、尋求真理、智慧',
+            soulMission: '9號隱者通過內在探索獲得智慧，成為他人的指路明燈。需要發展孤獨中的智慧和靈性指導能力。',
+            personalityTrait: '外在表現為內省智慧、喜歡獨處的深度思考者。隱者象徵通過孤獨獲得的深度洞察，擁有深度智慧和指導能力，但可能過度孤立或悲觀。'
+          },
+          10: {
+            name: '命運之輪',
+            shortMeaning: '命運轉變、機會、週期',
+            soulMission: '10號命運之輪學習接受生命的循環和變化，在變化中找到機會。靈魂潛能是適應變化和理解生命循環的智慧。',
+            personalityTrait: '個性特質是樂觀適應力強、相信運氣。命運之輪代表生命的循環和宇宙法則，能把握機會和適應變化，挑戰是過度依賴運氣和缺乏穩定性。'
+          },
+          11: {
+            name: '正義',
+            shortMeaning: '公正、平衡、因果法則',
+            soulMission: '11號正義的靈魂驅動力是追求真理與平衡，生命目標是達到內外的完美平衡。',
+            personalityTrait: '作為個性卡牌時展現強烈的公平正義感、邏輯清晰的特質。早期可能過度追求完美，成熟期成為他人的道德指南針。挑戰是過度嚴厲的內在批評。'
+          },
+          12: {
+            name: '倒吊人',
+            shortMeaning: '犧牲、新視角、等待',
+            soulMission: '12號倒吊人的靈魂渴望通過犧牲獲得更高理解，目標是達到完全的放下和接納。',
+            personalityTrait: '個性特徵是深具耐心、善於反思，能從逆境中成長。早期可能感到格格不入，成熟後成為精神導師。需克服過度拖延和受害者心態。'
+          },
+          13: {
+            name: '死神',
+            shortMeaning: '結束與新生、轉變、重生',
+            soulMission: '13號死神理解生死輪回的奧秘，協助他人完成重要的生命轉換。',
+            personalityTrait: '個性表現為深具洞察力、不懼怕改變的轉化者。經常成為他人生命中的轉折點觸發者。早期可能經歷較多分離，成熟後成為生命轉化的引導者。'
+          },
+          14: {
+            name: '節制',
+            shortMeaning: '平衡、調和、中庸之道',
+            soulMission: '14號節制尋求完美的平衡和和諧，整合對立的力量。',
+            personalityTrait: '外在表現為調和能力強的天生外交家，善於促進群體和諧。需要學會在極端之間找到平衡點，避免過度妥協。'
+          },
+          15: {
+            name: '惡魔',
+            shortMeaning: '慾望、束縛、物質主義',
+            soulMission: '15號惡魔的靈魂課題是理解和整合陰影面，將本能慾望轉化為創造力。',
+            personalityTrait: '個性特徵是充滿激情活力、直接坦率。早期可能過度放縱或壓抑，成熟後能將激情轉化為創造力。需警惕成癮傾向。'
+          },
+          16: {
+            name: '塔',
+            shortMeaning: '突變、覺醒、解放',
+            soulMission: '16號高塔的使命是破除虛假結構，重建更真實的基礎。',
+            personalityTrait: '表現為強大意志力的天生變革者，經常帶來意想不到的改變。早期可能經歷較多意外，成熟後成為他人生命中的轉機製造者。'
+          },
+          17: {
+            name: '星星',
+            shortMeaning: '希望、靈感、精神指引',
+            soulMission: '17號星星成為他人的希望之光，傳播治癒和靈感。',
+            personalityTrait: '個性特質是樂觀希望、具有治癒天賦。靈性成長方向是發展直覺和治癒能力，成為光的工作者。早期可能過於理想化，成熟後成為靈感源泉。'
+          },
+          18: {
+            name: '月亮',
+            shortMeaning: '幻象、直覺、潛意識',
+            soulMission: '18號月亮探索潛意識深處的奧秘，成為連接意識與無意識的橋樑。',
+            personalityTrait: '個性敏感多情、具有強烈直覺力。需要學會區分幻象與真實，克服內在恐懼。早期容易迷惑情緒不穩，成熟後成為精神嚮導。'
+          },
+          19: {
+            name: '太陽',
+            shortMeaning: '快樂、成功、生命力',
+            soulMission: '19號太陽散發光明和歡樂，成為純粹的光和愛的化身。',
+            personalityTrait: '外在表現為樂觀開朗、充滿活力的領袖氣質。生命課題是學會在困境中保持樂觀。早期可能過於天真，成熟後成為他人的激勵者。'
+          },
+          20: {
+            name: '審判',
+            shortMeaning: '覺醒、重生、召喚',
+            soulMission: '20號審判協助他人覺醒和重生，成為覺醒的催化劑。',
+            personalityTrait: '個性具有強烈使命感，能感知超自然現象。經常扮演覺醒者和革新者角色。挑戰是過於執著信念。'
+          },
+          21: {
+            name: '世界',
+            shortMeaning: '完成、成就、宇宙意識',
+            soulMission: '21號世界追求完整和圓滿，達到開悟和宇宙意識。',
+            personalityTrait: '表現為具有宇宙觀和包容性的整合者。生命目標是達到無條件的愛和完美平衡。可能過於追求完美。'
+          },
+        };
+
+        // 顯示詳細理論的組件
+        const TarotTheoryInfo = () => (
+          <div className="mt-8 p-6 bg-white rounded-lg shadow-md space-y-6 text-gray-700 transition-all duration-500 ease-in-out">
+            <h2 className="text-2xl font-bold text-purple-800 text-center flex items-center justify-center gap-2">
+              <BookOpen /> 塔羅生命靈數系統深度解碼
+            </h2>
+            
+            <section>
+              <h3 className="text-xl font-semibold text-purple-700 mb-2">靈魂藍圖與個性表現的深度解碼</h3>
+              <p className="text-base leading-relaxed">
+                塔羅牌生命靈數系統揭示了每個人獨特的靈魂藍圖和人生使命，透過出生日期計算得出的大阿爾卡納牌，能深入理解個人的內在本質與外在表現。這套系統不僅是占卜工具，更是一份詳盡的自我成長地圖。每個人都擁有代表靈魂核心的「靈魂卡牌」和展現今生學習課題的「個性卡牌」，這兩張牌的互動關係描繪出個人從出生到死亡的生命主題。
+              </p>
+            </section>
+
+            <section>
+               <h3 className="text-xl font-semibold text-purple-700 mb-2">理論架構與計算方法</h3>
+               <p className="text-base leading-relaxed mb-2">
+                此計算器採用 Mary K. Greer 的方法：將出生日期的所有數字相加，如果總和大於21，則繼續將結果的數字相加，直到小於或等於21為止。
+               </p>
+               <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-800">
+                    <p className="font-semibold mb-1">計算範例：</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li><b>靈魂卡牌</b>：將出生日期的每個數字相加（例：2000-08-05 → 2+0+0+0+0+8+0+5 = 15）。如果總和大於21（例：1992-02-21 → 26），持續將數字相加直到小於等於21（2+6 = 8）。</li>
+                      <li><b>個性卡牌</b>：將靈魂卡牌的數字相加得到個性卡牌（如果靈魂卡牌已是個位數，則兩者相同）。</li>
+                      <li><b>特殊組合</b>：當靈魂卡牌是19時，會產生三張牌：19 (太陽), 10 (命運之輪), 1 (魔術師)。</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section>
+               <h3 className="text-xl font-semibold text-purple-700 mb-2">靈魂卡牌 vs. 個性卡牌</h3>
+               <div className="grid md:grid-cols-2 gap-4">
+                    <div className="bg-purple-50 p-3 rounded-lg">
+                        <h4 className="font-bold text-purple-800">靈魂卡牌 (Soul Card)</h4>
+                        <p className="text-sm">代表個人的<b>靈魂目的</b>和<b>最深層核心</b>，是跨越多個生世的永恆特質。它反映靈魂的根本使命、與生俱來的天賦和能力。</p>
+                    </div>
+                    <div className="bg-pink-50 p-3 rounded-lg">
+                        <h4 className="font-bold text-pink-800">個性卡牌 (Personality Card)</h4>
+                        <p className="text-sm">描述個人在<b>此生需要學習的課題</b>和<b>人格發展的方向</b>。它代表外在世界的表現方式，以及需要掌握和整合的人生功課。</p>
+                    </div>
+               </div>
+            </section>
+
+            <section>
+                <h3 className="text-xl font-semibold text-purple-700 mb-2">生命牌卡組合的特殊情況</h3>
+                <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                        <h4 className="font-bold text-gray-800">情況一：統一型 (1張主牌)</h4>
+                        <p className="text-sm mt-1">當生日數字總和為 1-9 時，您的「靈魂牌」與「個性牌」是同一張牌。這代表您的內在本質與外在表現高度一致，人生課題非常專注和強烈。您的挑戰與天賦都集中在這張牌的能量中，沒有額外的陰影牌。</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                        <h4 className="font-bold text-gray-800">情況二：標準雙牌組 (2張主牌 + 1張陰影牌)</h4>
+                        <p className="text-sm mt-1">當生日數字總和為 10-18、20 或 21 時，您會有兩張主要牌卡。額外計算的「陰影牌」（靈魂牌 - 個性牌）代表您潛意識中的挑戰、隱藏的才能或需要整合的課題。這三張牌共同構成您此生的學習藍圖。</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                        <h4 className="font-bold text-gray-800">情況三：太陽特殊三重牌組 (3張主牌)</h4>
+                        <p className="text-sm mt-1">當生日數字總和為 19 (太陽) 時，這是一個非常特殊的組合。它不會產生傳統的陰影牌，而是形成一個完整的創造循環：<br/><b>19 (太陽)</b> → <b>10 (命運之輪)</b> → <b>1 (魔術師)</b>。<br/>這三張牌分別代表實現、機遇和意志，共同構成您強大的創造潛能。</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+              <h3 className="text-xl font-semibold text-purple-700 mb-2">整合與實踐</h3>
+              <p className="text-base leading-relaxed">
+                生命的前半段（約35歲前）主要發展個性卡牌的特質，學習在社會中建立身份。生命後半段則轉向靈魂卡牌的深度探索，尋求生命意義。理解您的生命牌卡不是限制，而是指引。透過認識自己的天賦與挑戰，每個人都能更好地實現潛能，在人生旅程中找到方向和意義。
+              </p>
+            </section>
+          </div>
+        );
+
+
+        // 報告生成器 - 極端詳細的多維度分析系統
+        const generateDetailedTarotReport = (cardSet) => {
+            const { soulCard, personalityCard, shadowCard, giftCard } = cardSet;
+            
+            let introduction = '';
+            let cardsAnalysis = [];
+            let dynamicsAnalysis = '';
+            
+            if (giftCard !== null) { // 太陽特殊三重牌組
+                introduction = `您的生命牌卡組合是極其罕見且強大的「太陽三重奏」(${soulCard}/${personalityCard}/${giftCard})。這是一個動態的創造循環，而非靜態的人格特質。您的生命本質是一個不斷運作的創造引擎，從意志(${giftCard})→機遇(${personalityCard})→實現(${soulCard})的永恆循環。這意味著您天生擁有將夢想轉化為現實的非凡能力，是真正的「顯化大師」。`;
+                
+                cardsAnalysis = [
+                    { cardId: soulCard, role: '靈魂牌：光輝實現的最高表達', roleKey: 'soul' },
+                    { cardId: personalityCard, role: '個性牌：把握宇宙時機的智慧', roleKey: 'gift' },
+                    { cardId: giftCard, role: '天賦牌：主動創造的核心動力', roleKey: 'gift' }
+                ];
+                
+                dynamicsAnalysis = `在您的太陽三重奏中，${cardDetails[giftCard]?.name || '魔術師'}是「點火器」，代表您個人意志和創造衝動的源頭；${cardDetails[personalityCard]?.name || '命運之輪'}是「放大器」，讓宇宙為您打開正確的門，提供必要的機遇和資源；${cardDetails[soulCard]?.name || '太陽'}是「展現台」，將您的創造成果以最光輝的形式展現給世界。您的人生課題是學會協調這三股能量，讓它們形成一個和諧的創造循環，而非各自為政。`;
+                
+            } else if (shadowCard === null) { // 統一型
+                introduction = `您是極其特殊的「統一型」人格 - 靈魂牌與個性牌均為 ${soulCard} 號「${cardDetails[soulCard]?.name}」。這意味著您的內在本質與外在表現高度統一，沒有表裡不一的困擾，但也意味著您的人生課題異常集中和強烈。您此生的所有學習、挑戰與天賦都聚焦在這一張牌的深層奧義中。您既是${cardDetails[soulCard]?.name}能量的純粹體現，也是其最大的考驗者。`;
+                
+                cardsAnalysis = [
+                    { cardId: soulCard, role: '靈魂卡牌：您存在的根本核心', roleKey: 'soul' },
+                    { cardId: personalityCard, role: '個性卡牌：您表達的根本方式', roleKey: 'personality' }
+                ];
+                
+                dynamicsAnalysis = `作為統一型，您的內外能量完全集中，這賦予您巨大的專注力和潛能，但也可能讓您陷入${cardDetails[soulCard]?.name}的極端表現或盲點中。您的成長關鍵在於發展對自身核心能量的深度覺察，有意識地平衡其天賦與挑戰面，避免其陰影面過度顯現。您需要成為${cardDetails[soulCard]?.name}的「完美化身」，既體現其所有光明面，又能整合其陰影，達到該原型的最高表達。`;
+                
+            } else { // 標準雙牌組 + 陰影牌
+                introduction = `您的生命牌卡構成了一個完整的三維學習藍圖：靈魂牌「${cardDetails[soulCard]?.name}」(${soulCard})定義了您的核心使命和最高潛能，個性牌「${cardDetails[personalityCard]?.name}」(${personalityCard})是您今生需要掌握的主要課題和外在表達方式，而陰影牌「${cardDetails[shadowCard]?.name}」(${shadowCard})則揭示了前兩張牌之間的潛在張力，以及您需要整合的深層挑戰與隱藏力量。`;
+                
+                cardsAnalysis = [
+                    { cardId: soulCard, role: '靈魂牌：您永恆的本質與最高使命', roleKey: 'soul' },
+                    { cardId: personalityCard, role: '個性牌：您今生的學習課題', roleKey: 'personality' },
+                    { cardId: shadowCard, role: '陰影牌：需要整合的內在力量', roleKey: 'shadow' }
+                ];
+                
+                dynamicsAnalysis = `您的生命藍圖的核心動力學在於${cardDetails[shadowCard]?.name}(${shadowCard})這張陰影牌。它既是${cardDetails[soulCard]?.name}與${cardDetails[personalityCard]?.name}之間可能出現的衝突源泉，也是整合它們的關鍵橋樑。當您用${cardDetails[personalityCard]?.name}的特質去過度補償或逃避${cardDetails[shadowCard]?.name}所代表的恐懼和挑戰時，您的能量就會失衡。只有當您有意識地擁抱並轉化${cardDetails[shadowCard]?.name}的課題時，您的靈魂使命(${cardDetails[soulCard]?.name})才能更自然、更強大地通過您的個性(${cardDetails[personalityCard]?.name})表達出來。`;
+            }
+            
+            return { introduction, cardsAnalysis, dynamicsAnalysis, cardSet };
+        };
+
+        const TarotBirthCardsCalculator = () => {
+          const [birthDate, setBirthDate] = useState('');
+          const [result, setResult] = useState(null);
+          const [detailedReport, setDetailedReport] = useState(null);
+          const [showProcess, setShowProcess] = useState(false);
+          const [showInfo, setShowInfo] = useState(false);
+          const [viewMode, setViewMode] = useState('simple');
+
+          const calculateTarotCards = (date) => {
+            const digits = date.replace(/-/g, '').split('').map(Number);
+            let total = digits.reduce((sum, digit) => sum + digit, 0);
+            const steps = [`出生年月日數字相加: ${digits.join(' + ')} = ${total}`];
+
+            while (total > 21) {
+              const newDigits = total.toString().split('').map(Number);
+              const newTotal = newDigits.reduce((sum, digit) => sum + digit, 0);
+              steps.push(`總和 > 21，繼續相加: ${newDigits.join(' + ')} = ${newTotal}`);
+              total = newTotal;
+            }
+
+            const soulCard = total;
+            let personalityCard = null;
+            let shadowCard = null;
+            let giftCard = null;
+            
+            // 根據靈魂牌處理三種主要情況
+            if (soulCard >= 10) {
+              const personalityDigits = soulCard.toString().split('').map(Number);
+              personalityCard = personalityDigits.reduce((sum, digit) => sum + digit, 0);
+              
+              if (soulCard === 19) {
+                // 情況三：太陽特殊三重牌組
+                giftCard = 1; // 1+0 = 1
+                steps.push(`靈魂卡牌為 19 (太陽)，此為特殊三重牌組。`);
+                steps.push(`個性卡牌: 1 + 9 = 10 (${cardDetails[10].name})`);
+                steps.push(`隱藏/天賦卡牌: 1 + 0 = 1 (${cardDetails[1].name})`);
+              } else {
+                // 情況二：標準雙牌組 + 陰影牌
+                shadowCard = soulCard - personalityCard;
+                steps.push(`靈魂卡牌為 ${soulCard} (${cardDetails[soulCard].name})。`);
+                steps.push(`個性卡牌: ${personalityDigits.join(' + ')} = ${personalityCard} (${cardDetails[personalityCard].name})`);
+                steps.push(`陰影牌: ${soulCard} - ${personalityCard} = ${shadowCard} (${cardDetails[shadowCard].name})`);
+              }
+            } else {
+              // 情況一：統一型
+              personalityCard = soulCard;
+              steps.push(`靈魂卡牌為個位數，個性卡牌與其相同: ${personalityCard} (${cardDetails[personalityCard].name})。`);
+              steps.push(`此為統一型，無額外陰影牌。`);
+            }
+
+            return { soulCard, personalityCard, shadowCard, giftCard, steps };
+          };
+
+          const handleCalculate = () => {
+            if (!birthDate) {
+              alert('請輸入出生日期');
+              return;
+            }
+            const cardSet = calculateTarotCards(birthDate);
+            setResult(cardSet);
+            
+            // 生成極端詳細的報告
+            const report = generateDetailedTarotReport(cardSet);
+            setDetailedReport(report);
+            
+            setShowProcess(false);
+          };
+
+          const formatDate = (date) => {
+            if (!date) return '';
+            const parts = date.split('-');
+            return `${parts[0]}年${parts[1]}月${parts[2]}日`;
+          };
+
+          const CardDisplay = ({ icon, title, cardId, bgColor, textColor, borderColor, description }) => {
+            if (cardId === null || cardId === undefined) return null;
+            const details = cardDetails[cardId];
+            return (
+              <div className={`${bgColor} rounded-lg p-4 shadow-sm border-l-4 ${borderColor}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  {icon}
+                  <h3 className={`font-semibold ${textColor}`}>{title}</h3>
+                </div>
+                <div className={`text-2xl font-bold ${textColor} mb-2`}>
+                  {cardId} - {details.name}
+                </div>
+                <p className={`text-sm font-semibold ${textColor} mb-2`}>{details.shortMeaning}</p>
+                <p className={`text-xs ${textColor} opacity-80`}>{description}</p>
+              </div>
+            );
+          };
+
+          // 極端詳細報告顯示組件
+          const DetailedTarotReport = ({ reportData }) => {
+            const [openSections, setOpenSections] = useState({});
+            const [expandedAnalysis, setExpandedAnalysis] = useState(false);
+
+            const toggleSection = (id) => {
+                setOpenSections(prev => ({...prev, [id]: !prev[id]}));
+            };
+
+            return (
+                <div className="bg-white rounded-lg p-6 shadow-lg mt-6 animate-fade-in">
+                    <h2 className="text-3xl font-bold text-purple-900 mb-3 text-center">您的深度塔羅生命藍圖報告</h2>
+                    <p className="text-center text-gray-700 mb-6 text-lg leading-relaxed">{reportData.introduction}</p>
+
+                    <div className="space-y-6 mb-8">
+                        <h3 className="text-2xl font-bold text-purple-800 text-center mb-4">多維度卡牌分析</h3>
+                        {reportData.cardsAnalysis.map((cardAnalysis, index) => {
+                            const cardData = cardDetails[cardAnalysis.cardId];
+                            
+                            return (
+                                <div key={index} className="border-2 border-purple-200 rounded-lg overflow-hidden shadow-md">
+                                    <button 
+                                        onClick={() => toggleSection(`card-${cardAnalysis.cardId}-${index}`)} 
+                                        className="w-full p-5 bg-gradient-to-r from-purple-100 to-pink-100 hover:from-purple-200 hover:to-pink-200 flex justify-between items-center transition-all duration-300"
+                                    >
+                                        <div className="text-left">
+                                            <span className="text-xl font-bold text-purple-800">
+                                                {cardAnalysis.role}: {cardData?.name} ({cardAnalysis.cardId})
+                                            </span>
+                                            <div className="text-sm text-purple-600 mt-1">
+                                                {cardData?.shortMeaning || ''}
+                                            </div>
+                                        </div>
+                                        <span className="text-purple-600 text-2xl">
+                                            {openSections[`card-${cardAnalysis.cardId}-${index}`] ? '▲' : '▼'}
+                                        </span>
+                                    </button>
+                                    
+                                    {openSections[`card-${cardAnalysis.cardId}-${index}`] && (
+                                        <div className="p-6 bg-white space-y-6 animate-fade-in">
+                                            <div className="p-4 bg-purple-50 rounded-lg border-l-4 border-purple-500">
+                                                <h4 className="font-bold text-purple-800 text-lg mb-2">🎭 核心意義</h4>
+                                                <p className="text-gray-700 leading-relaxed">{cardData?.shortMeaning}</p>
+                                            </div>
+                                            
+                                            <div className="grid md:grid-cols-2 gap-4">
+                                                <div className="p-4 bg-green-50 rounded-lg border-l-4 border-green-500">
+                                                    <h4 className="font-bold text-green-800 mb-2">✨ 天賦與潛能</h4>
+                                                    <p className="text-sm text-gray-700">{cardData?.soulMission}</p>
+                                                </div>
+                                                
+                                                <div className="p-4 bg-orange-50 rounded-lg border-l-4 border-orange-500">
+                                                    <h4 className="font-bold text-orange-800 mb-2">⚠️ 挑戰與課題</h4>
+                                                    <p className="text-sm text-gray-700">{cardData?.personalityTrait}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="mb-8">
+                        <button
+                            onClick={() => setExpandedAnalysis(!expandedAnalysis)}
+                            className="w-full p-5 bg-gradient-to-r from-blue-100 to-indigo-100 hover:from-blue-200 hover:to-indigo-200 rounded-lg shadow-md transition-all duration-300 flex items-center justify-between"
+                        >
+                            <h3 className="text-2xl font-bold text-blue-900">🌌 牌組互動分析：能量的神聖共舞</h3>
+                            <span className="text-blue-600 text-2xl">
+                                {expandedAnalysis ? '▲' : '▼'}
+                            </span>
+                        </button>
+                        
+                        {expandedAnalysis && (
+                            <div className="mt-4 p-6 bg-blue-50 rounded-lg border-2 border-blue-200 animate-fade-in">
+                                <p className="text-blue-900 leading-relaxed text-lg">{reportData.dynamicsAnalysis}</p>
+                            </div>
+                        )}
+                    </div>
+                    
+                    <div className="text-center p-6 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                        <h4 className="text-xl font-bold text-purple-800 mb-3">🙏 整合與實踐</h4>
+                        <p className="text-gray-700 leading-relaxed">
+                            這份報告提供了一個關於您生命藍圖的深度視角。請記住，這些牌卡不是對您的限制，而是一份珍貴的指引。
+                            它們揭示了您的天賦、挑戰與最高的潛能。通過理解和整合這些原型能量，
+                            您將能更有意識地走在屬於自己的獨特生命道路上，活出最真實、最完整的自己。
+                        </p>
+                    </div>
+                </div>
+            );
+          };
+
+          return (
+            <div className="max-w-3xl mx-auto p-4 sm:p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-xl font-sans">
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-purple-800 mb-2 flex items-center justify-center gap-2">
+                  <Sparkles className="w-8 h-8" />
+                  塔羅生命靈數計算器
+                </h1>
+                <p className="text-gray-600">依據 Mary K. Greer 系統，解碼您的主牌與陰影牌</p>
+              </div>
+
+              <div className="bg-white rounded-lg p-6 shadow-md mb-6">
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    請輸入您的出生日期
+                  </label>
+                  <input
+                    type="date"
+                    value={birthDate}
+                    onChange={(e) => setBirthDate(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <button
+                  onClick={handleCalculate}
+                  className="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700 transition-colors font-semibold flex items-center justify-center gap-2"
+                >
+                  <Sparkles className="w-5 h-5" /> 計算我的生命牌卡
+                </button>
+              </div>
+
+              {result && (
+                <div className="space-y-6 animate-fade-in">
+                  {/* 檢視模式切換 */}
+                  <div className="bg-white rounded-lg p-4 shadow-md">
+                    <div className="flex justify-center space-x-4">
+                      <button
+                        onClick={() => setViewMode('simple')}
+                        className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                          viewMode === 'simple'
+                            ? 'bg-purple-600 text-white shadow-lg transform scale-105'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        📊 簡要概覽
+                      </button>
+                      <button
+                        onClick={() => setViewMode('detailed')}
+                        className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+                          viewMode === 'detailed'
+                            ? 'bg-purple-600 text-white shadow-lg transform scale-105'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        }`}
+                      >
+                        📚 極端詳細分析
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* 條件顯示：簡要概覽或詳細報告 */}
+                  {viewMode === 'simple' ? (
+                    <div className="bg-white rounded-lg p-6 shadow-md">
+                      <h2 className="text-xl font-bold text-gray-800 mb-4">
+                        您的塔羅生命靈數結果
+                      </h2>
+                      
+                      <div className="grid md:grid-cols-1 gap-6">
+                        <CardDisplay 
+                          icon={<Hash className="w-5 h-5 text-purple-600" />} 
+                          title="靈魂卡牌 (Soul Card)"
+                          cardId={result.soulCard}
+                          bgColor="bg-purple-100"
+                          textColor="text-purple-900"
+                          borderColor="border-purple-500"
+                          description={cardDetails[result.soulCard]?.soulMission}
+                        />
+                        <CardDisplay 
+                          icon={<User className="w-5 h-5 text-pink-600" />} 
+                          title="個性卡牌 (Personality Card)"
+                          cardId={result.personalityCard}
+                          bgColor="bg-pink-100"
+                          textColor="text-pink-900"
+                          borderColor="border-pink-500"
+                          description={cardDetails[result.personalityCard]?.personalityTrait}
+                        />
+
+                        <CardDisplay 
+                          icon={<Shield className="w-5 h-5 text-slate-600" />} 
+                          title="陰影牌 (Shadow Card)"
+                          cardId={result.shadowCard}
+                          bgColor="bg-slate-100"
+                          textColor="text-slate-900"
+                          borderColor="border-slate-500"
+                          description="這是您需要面對與整合的內在挑戰，也是隱藏的潛能所在。"
+                        />
+
+                        <CardDisplay 
+                          icon={<Gift className="w-5 h-5 text-yellow-600" />} 
+                          title="隱藏/天賦卡牌 (Hidden/Gift Card)"
+                          cardId={result.giftCard}
+                          bgColor="bg-yellow-100"
+                          textColor="text-yellow-900"
+                          borderColor="border-yellow-500"
+                          description="作為太陽三重奏的一部分，這代表您的核心意志與天賦才能。"
+                        />
+                      </div>
+
+                      <button
+                        onClick={() => setShowProcess(!showProcess)}
+                        className="mt-6 text-purple-600 hover:text-purple-800 text-sm font-medium flex items-center gap-1"
+                      >
+                        {showProcess ? '隱藏' : '顯示'}計算過程
+                        <span className="text-purple-600">{showProcess ? '▲' : '▼'}</span>
+                      </button>
+
+                      {showProcess && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-lg animate-fade-in">
+                          <h4 className="font-semibold text-gray-700 mb-2">計算步驟：</h4>
+                          <p className="text-sm text-gray-600 mb-2">
+                            出生日期：{formatDate(birthDate)}
+                          </p>
+                          <div className="space-y-1">
+                            {result.steps.map((step, index) => (
+                              <p key={index} className="text-sm font-mono text-gray-700">
+                                {step}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    // 極端詳細分析模式
+                    detailedReport && <DetailedTarotReport reportData={detailedReport} />
+                  )}
+                </div>
+              )}
+
+              <div className="text-center mt-8">
+                <button
+                  onClick={() => setShowInfo(!showInfo)}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-white text-purple-700 rounded-full shadow-md hover:bg-purple-50 transition-transform transform hover:scale-105"
+                >
+                  <span className="font-semibold">了解更多關於塔羅生命靈數</span>
+                  {showInfo ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </button>
+              </div>
+
+              {showInfo && <TarotTheoryInfo />}
+            </div>
+          );
+        };
+
+        ReactDOM.render(<TarotBirthCardsCalculator />, document.getElementById('root'));
+    </script>
+</body>
+</html>
