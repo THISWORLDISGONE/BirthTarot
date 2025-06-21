@@ -497,11 +497,14 @@
               <div className={`${bgColor} rounded-lg p-4 shadow-sm md:shadow-md border-l-4 ${borderColor} transition-all duration-300`}>
                 {/* Card Image */}
                 <div className="relative mb-3">
-                  <img 
-                    src={sharedGetCardImagePath(cardId)} 
+                  <img
+                    src={sharedGetCardImagePath(cardId)}
                     alt={details.name}
                     className="w-full max-w-[150px] mx-auto rounded-lg shadow-md object-cover border-2 border-white"
                     onError={(e) => e.target.style.display = 'none'}
+                    loading="lazy"
+                    width="150"
+                    height="250"
                   />
                 </div>
                 
@@ -782,19 +785,25 @@
                     {/* Partner Card Images */}
                     <div className="flex justify-center gap-4 my-3">
                       <div className="text-center">
-                        <img 
-                          src={sharedGetCardImagePath(cards[0])} 
+                        <img
+                          src={sharedGetCardImagePath(cards[0])}
                           alt={getCardName(cards[0])}
                           className="w-16 h-24 object-cover rounded-md shadow-md border-2 border-white mx-auto"
+                          loading="lazy"
+                          width="64"
+                          height="96"
                         />
                         <p className="text-xs mt-1">{getCardName(cards[0])}</p>
                       </div>
                       <HeartIcon className="text-red-500 text-2xl self-center" />
                       <div className="text-center">
-                        <img 
-                          src={sharedGetCardImagePath(cards[1])} 
+                        <img
+                          src={sharedGetCardImagePath(cards[1])}
                           alt={getCardName(cards[1])}
                           className="w-16 h-24 object-cover rounded-md shadow-md border-2 border-white mx-auto"
+                          loading="lazy"
+                          width="64"
+                          height="96"
                         />
                         <p className="text-xs mt-1">{getCardName(cards[1])}</p>
                       </div>
@@ -815,34 +824,34 @@
               <div className="text-center mb-8"><h1 className="text-3xl font-bold text-purple-800 mb-2 flex items-center justify-center gap-2"><HeartIcon className="w-8 h-8" />塔羅牌雙人兼容性深度分析</h1><p className="text-gray-600">依據塔羅原型互動，深入分析兩人的靈魂契合度、個性相容性與共同成長潛力</p></div>
               
               <div className="bg-white rounded-lg p-6 shadow-md mb-6">
-                <div className="grid md:grid-cols-2 gap-x-6 gap-y-8">
-                    <div className="space-y-4">
-                        <h3 className="font-semibold text-gray-800 flex items-center gap-2"><UsersIcon className="w-5 h-5" /> 第一位夥伴</h3>
-                        <input type="text" placeholder="姓名/暱稱" value={person1Name} onChange={(e) => setPerson1Name(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
-                        <input type="date" value={person1Date} onChange={(e) => setPerson1Date(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
-                    </div>
-                    <div className="space-y-4">
-                        <h3 className="font-semibold text-gray-800 flex items-center gap-2"><UsersIcon className="w-5 h-5" /> 第二位夥伴</h3>
-                        <input type="text" placeholder="姓名/暱稱" value={person2Name} onChange={(e) => setPerson2Name(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
-                        <input type="date" value={person2Date} onChange={(e) => setPerson2Date(e.target.value)} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
-                    </div>
-                    <div className="md:col-span-2 border-t pt-6">
-                        <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2"><ClockIcon/> 選擇分析時點（用於流年流月互動）</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">年份</label>
-                                <input type="number" value={targetYear} onChange={(e) => setTargetYear(parseInt(e.target.value, 10) || new Date().getFullYear())} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"/>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">月份</label>
-                                <select value={targetMonth} onChange={(e) => setTargetMonth(parseInt(e.target.value, 10))} className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 bg-white">
-                                    {[...Array(12).keys()].map(i => <option key={i+1} value={i+1}>{i+1}月</option>)}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <button onClick={handleAnalyze} className="w-full mt-6 bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-md hover:from-purple-700 hover:to-pink-700 transition-colors font-semibold"><Sparkles className="inline-block w-4 h-4 mr-1" /> 分析兼容性 <Sparkles className="inline-block w-4 h-4 ml-1" /></button>
+                <div className="grid md:grid-cols-2 gap-4 md:gap-x-6 md:gap-y-8">
+                      <div className="space-y-3 md:space-y-4">
+                          <h3 className="font-semibold text-gray-800 flex items-center gap-2"><UsersIcon className="w-5 h-5" /> 第一位夥伴</h3>
+                          <input type="text" placeholder="姓名/暱稱" value={person1Name} onChange={(e) => setPerson1Name(e.target.value)} className="w-full px-3 py-1.5 text-sm rounded-md border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent md:px-4 md:py-2"/>
+                          <input type="date" value={person1Date} onChange={(e) => setPerson1Date(e.target.value)} className="w-full px-3 py-1.5 text-sm rounded-md border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent md:px-4 md:py-2"/>
+                      </div>
+                      <div className="space-y-3 md:space-y-4">
+                          <h3 className="font-semibold text-gray-800 flex items-center gap-2"><UsersIcon className="w-5 h-5" /> 第二位夥伴</h3>
+                          <input type="text" placeholder="姓名/暱稱" value={person2Name} onChange={(e) => setPerson2Name(e.target.value)} className="w-full px-3 py-1.5 text-sm rounded-md border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent md:px-4 md:py-2"/>
+                          <input type="date" value={person2Date} onChange={(e) => setPerson2Date(e.target.value)} className="w-full px-3 py-1.5 text-sm rounded-md border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent md:px-4 md:py-2"/>
+                      </div>
+                      <div className="md:col-span-2 border-t pt-4 md:pt-6">
+                          <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2"><ClockIcon/> 選擇分析時點</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-0.5 sm:mb-1">年份</label>
+                                  <input type="number" value={targetYear} onChange={(e) => setTargetYear(parseInt(e.target.value, 10) || new Date().getFullYear())} className="w-full px-3 py-1.5 text-sm rounded-md border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent md:px-4 md:py-2"/>
+                              </div>
+                              <div>
+                                  <label className="block text-sm font-medium text-gray-700 mb-0.5 sm:mb-1">月份</label>
+                                  <select value={targetMonth} onChange={(e) => setTargetMonth(parseInt(e.target.value, 10))} className="w-full px-3 py-1.5 text-sm rounded-md border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent md:px-4 md:py-2 bg-white">
+                                      {[...Array(12).keys()].map(i => <option key={i+1} value={i+1}>{i+1}月</option>)}
+                                  </select>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+                  <button onClick={handleAnalyze} className="w-full mt-4 py-2 text-sm bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:from-purple-700 hover:to-pink-700 transition-colors font-semibold md:mt-6 md:py-3"><Sparkles className="inline-block w-4 h-4 mr-1" /> 分析兼容性 <Sparkles className="inline-block w-4 h-4 ml-1" /></button>
               </div>
               
               {result && (
@@ -1032,10 +1041,13 @@
               <div className={`${bgColor} rounded-lg p-4 shadow-md border-l-4 ${borderColor}`}>
                 {/* Card Image */}
                 <div className="mb-3 flex justify-center">
-                  <img 
-                    src={sharedGetCardImagePath(cardId)} 
+                  <img
+                    src={sharedGetCardImagePath(cardId)}
                     alt={details.name}
                     className="w-full max-w-[120px] rounded-lg shadow-md object-cover border-2 border-white"
+                    loading="lazy"
+                    width="120"
+                    height="200"
                   />
                 </div>
                 
@@ -1148,9 +1160,636 @@
         };
 
 
+        // --- COMPREHENSIVE TAROT SESSION COMPONENT ---
+        const ComprehensiveTarotSession = () => {
+          const [birthDate, setBirthDate] = useState('');
+          const [results, setResults] = useState(null);
+
+          // Zodiac signs data with enhanced descriptions
+          const zodiacSigns = {
+            aries: { 
+              name: '牡羊座', 
+              dates: '3/21-4/19', 
+              element: '火', 
+              traits: '勇敢、衝動、領導力、活力、積極主動', 
+              challenges: '急躁、自我中心、缺乏耐心、容易衝動',
+              keywords: ['開創', '冒險', '獨立', '直接', '熱情'],
+              lifeTheme: '我是 - 開創與領導的能量'
+            },
+            taurus: { 
+              name: '金牛座', 
+              dates: '4/20-5/20', 
+              element: '土', 
+              traits: '穩定、實際、堅持、享受、可靠', 
+              challenges: '固執、物質主義、抗拒改變、過度保守',
+              keywords: ['穩定', '持久', '享受', '實用', '堅韌'],
+              lifeTheme: '我擁有 - 建立與保持的能量'
+            },
+            gemini: { 
+              name: '雙子座', 
+              dates: '5/21-6/20', 
+              element: '風', 
+              traits: '聰明、好奇、溝通、多才、適應力強', 
+              challenges: '善變、表面、缺乏深度、分心',
+              keywords: ['溝通', '學習', '多樣', '靈活', '好奇'],
+              lifeTheme: '我思考 - 交流與學習的能量'
+            },
+            cancer: { 
+              name: '巨蟹座', 
+              dates: '6/21-7/22', 
+              element: '水', 
+              traits: '關愛、直覺、家庭、保護、同理心', 
+              challenges: '情緒化、過度敏感、依賴、防衛性強',
+              keywords: ['關懷', '保護', '直覺', '家庭', '情感'],
+              lifeTheme: '我感受 - 滋養與保護的能量'
+            },
+            leo: { 
+              name: '獅子座', 
+              dates: '7/23-8/22', 
+              element: '火', 
+              traits: '自信、慷慨、創造、表演、領導魅力', 
+              challenges: '自負、需要關注、戲劇化、驕傲',
+              keywords: ['創造', '表演', '領導', '光明', '慷慨'],
+              lifeTheme: '我創造 - 展現與領導的能量'
+            },
+            virgo: { 
+              name: '處女座', 
+              dates: '8/23-9/22', 
+              element: '土', 
+              traits: '完美、分析、服務、實用、細緻', 
+              challenges: '挑剔、焦慮、過度完美主義、過度分析',
+              keywords: ['分析', '服務', '完美', '實用', '精確'],
+              lifeTheme: '我分析 - 完善與服務的能量'
+            },
+            libra: { 
+              name: '天秤座', 
+              dates: '9/23-10/22', 
+              element: '風', 
+              traits: '和諧、美感、公正、夥伴、平衡', 
+              challenges: '猶豫不決、迴避衝突、依賴他人、表面和諧',
+              keywords: ['平衡', '和諧', '美感', '合作', '公正'],
+              lifeTheme: '我平衡 - 和諧與合作的能量'
+            },
+            scorpio: { 
+              name: '天蠍座', 
+              dates: '10/23-11/21', 
+              element: '水', 
+              traits: '深刻、熱情、轉化、神秘、洞察力', 
+              challenges: '佔有、報復、極端、控制、秘密',
+              keywords: ['深度', '轉化', '力量', '神秘', '再生'],
+              lifeTheme: '我轉化 - 深度與重生的能量'
+            },
+            sagittarius: { 
+              name: '射手座', 
+              dates: '11/22-12/21', 
+              element: '火', 
+              traits: '冒險、哲學、自由、樂觀、智慧', 
+              challenges: '不負責任、誇大、缺乏承諾、過度理想',
+              keywords: ['探索', '哲學', '自由', '擴展', '智慧'],
+              lifeTheme: '我探索 - 擴展與智慧的能量'
+            },
+            capricorn: { 
+              name: '摩羯座', 
+              dates: '12/22-1/19', 
+              element: '土', 
+              traits: '野心、紀律、責任、成功、實際', 
+              challenges: '嚴肅、悲觀、工作狂、過度控制',
+              keywords: ['目標', '責任', '成就', '結構', '權威'],
+              lifeTheme: '我達成 - 建構與成就的能量'
+            },
+            aquarius: { 
+              name: '水瓶座', 
+              dates: '1/20-2/18', 
+              element: '風', 
+              traits: '創新、獨立、人道、未來、友誼', 
+              challenges: '疏離、叛逆、不切實際、固執己見',
+              keywords: ['創新', '獨立', '友誼', '人道', '未來'],
+              lifeTheme: '我知道 - 創新與人道的能量'
+            },
+            pisces: { 
+              name: '雙魚座', 
+              dates: '2/19-3/20', 
+              element: '水', 
+              traits: '同情、想像、靈性、藝術、直覺', 
+              challenges: '逃避、犧牲、缺乏界限、過度敏感',
+              keywords: ['靈性', '同情', '藝術', '夢想', '犧牲'],
+              lifeTheme: '我相信 - 靈性與同情的能量'
+            }
+          };
+
+          const getZodiacSign = (date) => {
+            if (!date) return null;
+            const [year, month, day] = date.split('-').map(Number);
+            const dateStr = `${month.toString().padStart(2, '0')}${day.toString().padStart(2, '0')}`;
+            
+            if (dateStr >= '0321' && dateStr <= '0419') return 'aries';
+            if (dateStr >= '0420' && dateStr <= '0520') return 'taurus';
+            if (dateStr >= '0521' && dateStr <= '0620') return 'gemini';
+            if (dateStr >= '0621' && dateStr <= '0722') return 'cancer';
+            if (dateStr >= '0723' && dateStr <= '0822') return 'leo';
+            if (dateStr >= '0823' && dateStr <= '0922') return 'virgo';
+            if (dateStr >= '0923' && dateStr <= '1022') return 'libra';
+            if (dateStr >= '1023' && dateStr <= '1121') return 'scorpio';
+            if (dateStr >= '1122' && dateStr <= '1221') return 'sagittarius';
+            if (dateStr >= '1222' || dateStr <= '0119') return 'capricorn';
+            if (dateStr >= '0120' && dateStr <= '0218') return 'aquarius';
+            if (dateStr >= '0219' && dateStr <= '0320') return 'pisces';
+            return null;
+          };
+
+
+
+          const calculateTarotCards = (date) => {
+            const digits = date.replace(/-/g, '').split('').map(Number);
+            let total = digits.reduce((sum, digit) => sum + digit, 0);
+            while (total > 21) {
+              const newDigits = total.toString().split('').map(Number);
+              total = newDigits.reduce((sum, digit) => sum + digit, 0);
+            }
+            const soulCard = total;
+            let personalityCard = null;
+            let shadowCard = null;
+            let giftCard = null;
+            
+            if (soulCard >= 10) {
+              const personalityDigits = soulCard.toString().split('').map(Number);
+              personalityCard = personalityDigits.reduce((sum, digit) => sum + digit, 0);
+              if (soulCard === 19) {
+                giftCard = personalityCard.toString().split('').map(Number).reduce((s,d)=>s+d,0);
+              } else {
+                shadowCard = soulCard - personalityCard;
+              }
+            } else {
+              personalityCard = soulCard;
+            }
+            return { soulCard, personalityCard, shadowCard, giftCard };
+          };
+
+          const analyzeZodiacTarotConnection = (zodiacSign, tarotCards) => {
+            if (!zodiacSign || !tarotCards) return null;
+            
+            const zodiac = zodiacSigns[zodiacSign];
+            const { soulCard, personalityCard, shadowCard, giftCard } = tarotCards;
+            
+            // 多維度星座塔羅對應系統
+            const zodiacTarotCorrelations = {
+              aries: {
+                primary: [4, 16, 7], // Emperor, Tower, Chariot - 主要關聯
+                secondary: [1, 8, 13], // Magician, Strength, Death - 次要關聯
+                supportive: [19, 11, 21], // Sun, Justice, World - 支持能量
+                challenging: [2, 12, 18], // High Priestess, Hanged Man, Moon - 挑戰整合
+                element: 'fire', // 火象
+                modality: 'cardinal', // 開創
+                theme: '行動力與領導'
+              },
+              taurus: {
+                primary: [5, 15, 3], // Hierophant, Devil, Empress
+                secondary: [4, 9, 11], // Emperor, Hermit, Justice
+                supportive: [14, 21, 6], // Temperance, World, Lovers
+                challenging: [1, 7, 16], // Magician, Chariot, Tower
+                element: 'earth',
+                modality: 'fixed',
+                theme: '穩定與感官享受'
+              },
+              gemini: {
+                primary: [1, 6, 10], // Magician, Lovers, Wheel
+                secondary: [0, 17, 20], // Fool, Star, Judgement
+                supportive: [5, 11, 14], // Hierophant, Justice, Temperance
+                challenging: [9, 12, 4], // Hermit, Hanged Man, Emperor
+                element: 'air',
+                modality: 'mutable',
+                theme: '溝通與多樣性'
+              },
+              cancer: {
+                primary: [2, 18, 7], // High Priestess, Moon, Chariot
+                secondary: [3, 17, 12], // Empress, Star, Hanged Man
+                supportive: [6, 14, 21], // Lovers, Temperance, World
+                challenging: [1, 4, 16], // Magician, Emperor, Tower
+                element: 'water',
+                modality: 'cardinal',
+                theme: '情感與保護'
+              },
+              leo: {
+                primary: [8, 19, 11], // Strength, Sun, Justice
+                secondary: [4, 21, 1], // Emperor, World, Magician
+                supportive: [3, 6, 17], // Empress, Lovers, Star
+                challenging: [2, 18, 12], // High Priestess, Moon, Hanged Man
+                element: 'fire',
+                modality: 'fixed',
+                theme: '創造力與表現'
+              },
+              virgo: {
+                primary: [9, 14, 20], // Hermit, Temperance, Judgement
+                secondary: [5, 11, 4], // Hierophant, Justice, Emperor
+                supportive: [2, 3, 21], // High Priestess, Empress, World
+                challenging: [0, 10, 15], // Fool, Wheel, Devil
+                element: 'earth',
+                modality: 'mutable',
+                theme: '完善與服務'
+              },
+              libra: {
+                primary: [6, 11, 2], // Lovers, Justice, High Priestess
+                secondary: [14, 3, 17], // Temperance, Empress, Star
+                supportive: [1, 19, 21], // Magician, Sun, World
+                challenging: [8, 13, 16], // Strength, Death, Tower
+                element: 'air',
+                modality: 'cardinal',
+                theme: '平衡與美感'
+              },
+              scorpio: {
+                primary: [13, 18, 8], // Death, Moon, Strength
+                secondary: [16, 15, 2], // Tower, Devil, High Priestess
+                supportive: [12, 20, 17], // Hanged Man, Judgement, Star
+                challenging: [19, 6, 3], // Sun, Lovers, Empress
+                element: 'water',
+                modality: 'fixed',
+                theme: '轉化與深度'
+              },
+              sagittarius: {
+                primary: [14, 10, 9], // Temperance, Wheel, Hermit
+                secondary: [0, 17, 5], // Fool, Star, Hierophant
+                supportive: [1, 19, 21], // Magician, Sun, World
+                challenging: [15, 18, 4], // Devil, Moon, Emperor
+                element: 'fire',
+                modality: 'mutable',
+                theme: '探索與智慧'
+              },
+              capricorn: {
+                primary: [4, 15, 21], // Emperor, Devil, World
+                secondary: [11, 5, 9], // Justice, Hierophant, Hermit
+                supportive: [3, 8, 14], // Empress, Strength, Temperance
+                challenging: [0, 18, 10], // Fool, Moon, Wheel
+                element: 'earth',
+                modality: 'cardinal',
+                theme: '成就與責任'
+              },
+              aquarius: {
+                primary: [17, 0, 11], // Star, Fool, Justice
+                secondary: [16, 20, 1], // Tower, Judgement, Magician
+                supportive: [10, 14, 6], // Wheel, Temperance, Lovers
+                challenging: [15, 4, 3], // Devil, Emperor, Empress
+                element: 'air',
+                modality: 'fixed',
+                theme: '創新與人道'
+              },
+              pisces: {
+                primary: [12, 18, 2], // Hanged Man, Moon, High Priestess
+                secondary: [17, 13, 14], // Star, Death, Temperance
+                supportive: [3, 6, 8], // Empress, Lovers, Strength
+                challenging: [1, 4, 7], // Magician, Emperor, Chariot
+                element: 'water',
+                modality: 'mutable',
+                theme: '直覺與慈悲'
+              }
+            };
+
+            const correlation = zodiacTarotCorrelations[zodiacSign] || {};
+            
+            // 分析各個維度的和諧度
+            const analyzeCardInDimension = (cardId, dimension) => {
+              if (!cardId || !correlation[dimension]) return { match: false, strength: 0 };
+              const cards = correlation[dimension];
+              const index = cards.indexOf(cardId);
+              if (index === -1) return { match: false, strength: 0 };
+              return { match: true, strength: cards.length - index }; // 前面的卡片權重更高
+            };
+
+            const soulAnalysis = {
+              primary: analyzeCardInDimension(soulCard, 'primary'),
+              secondary: analyzeCardInDimension(soulCard, 'secondary'),
+              supportive: analyzeCardInDimension(soulCard, 'supportive'),
+              challenging: analyzeCardInDimension(soulCard, 'challenging')
+            };
+
+            const personalityAnalysis = {
+              primary: analyzeCardInDimension(personalityCard, 'primary'),
+              secondary: analyzeCardInDimension(personalityCard, 'secondary'),
+              supportive: analyzeCardInDimension(personalityCard, 'supportive'),
+              challenging: analyzeCardInDimension(personalityCard, 'challenging')
+            };
+
+            const shadowAnalysis = shadowCard ? {
+              primary: analyzeCardInDimension(shadowCard, 'primary'),
+              secondary: analyzeCardInDimension(shadowCard, 'secondary'),
+              supportive: analyzeCardInDimension(shadowCard, 'supportive'),
+              challenging: analyzeCardInDimension(shadowCard, 'challenging')
+            } : null;
+
+            const giftAnalysis = giftCard ? {
+              primary: analyzeCardInDimension(giftCard, 'primary'),
+              secondary: analyzeCardInDimension(giftCard, 'secondary'),
+              supportive: analyzeCardInDimension(giftCard, 'supportive'),
+              challenging: analyzeCardInDimension(giftCard, 'challenging')
+            } : null;
+
+            // 計算總體和諧度分數
+            const calculateHarmonyScore = (analysis) => {
+              let score = 0;
+              if (analysis.primary.match) score += analysis.primary.strength * 4;
+              if (analysis.secondary.match) score += analysis.secondary.strength * 3;
+              if (analysis.supportive.match) score += analysis.supportive.strength * 2;
+              if (analysis.challenging.match) score += analysis.challenging.strength * 1;
+              return score;
+            };
+
+            const soulHarmonyScore = calculateHarmonyScore(soulAnalysis);
+            const personalityHarmonyScore = calculateHarmonyScore(personalityAnalysis);
+            const shadowHarmonyScore = shadowAnalysis ? calculateHarmonyScore(shadowAnalysis) : 0;
+            const giftHarmonyScore = giftAnalysis ? calculateHarmonyScore(giftAnalysis) : 0;
+
+            const totalHarmonyScore = soulHarmonyScore + personalityHarmonyScore + shadowHarmonyScore + giftHarmonyScore;
+            const maxPossibleScore = 60; // 假設最高分數
+            const harmonyPercentage = Math.min(100, Math.round((totalHarmonyScore / maxPossibleScore) * 100));
+
+            // 生成詳細分析文本
+            const generateDimensionAnalysis = (cardId, cardName, analysis, role) => {
+              const matches = [];
+              if (analysis.primary.match) matches.push(`核心${correlation.theme}特質`);
+              if (analysis.secondary.match) matches.push('次要相關能量');
+              if (analysis.supportive.match) matches.push('支持性能量');
+              if (analysis.challenging.match) matches.push('需要整合的挑戰性能量');
+              
+              if (matches.length === 0) {
+                return `您的${role} ${cardId}號${cardName} 與${zodiac.name}呈現互補對比的關係，這創造了豐富的個人發展層次。`;
+              }
+              
+              return `您的${role} ${cardId}號${cardName} 與${zodiac.name}的【${matches.join('、')}】產生共鳴。`;
+            };
+
+            const soulDimensionText = generateDimensionAnalysis(soulCard, cardDetails[soulCard]?.name, soulAnalysis, '靈魂牌');
+            const personalityDimensionText = generateDimensionAnalysis(personalityCard, cardDetails[personalityCard]?.name, personalityAnalysis, '個性牌');
+            const shadowDimensionText = shadowCard ? generateDimensionAnalysis(shadowCard, cardDetails[shadowCard]?.name, shadowAnalysis, '陰影牌') : '';
+            const giftDimensionText = giftCard ? generateDimensionAnalysis(giftCard, cardDetails[giftCard]?.name, giftAnalysis, '天賦牌') : '';
+
+            // 元素和形態分析
+            const elementAnalysis = {
+              fire: '火象能量帶來行動力、熱情與創新精神',
+              earth: '土象能量提供穩定性、實用性與具體化能力',
+              air: '風象能量促進思考、溝通與社交互動',
+              water: '水象能量增強直覺、情感與創造力'
+            };
+
+            const modalityAnalysis = {
+              cardinal: '開創星座的主動性與領導特質',
+              fixed: '固定星座的穩定性與專注力',
+              mutable: '變動星座的適應性與靈活度'
+            };
+
+            const overallHarmony = harmonyPercentage >= 60;
+
+            return {
+              zodiac,
+              overallHarmony,
+              harmonyPercentage,
+              soulAnalysis,
+              personalityAnalysis,
+              shadowAnalysis,
+              giftAnalysis,
+              elementTheme: correlation.element,
+              modalityTheme: correlation.modality,
+              coreTheme: correlation.theme,
+              detailedAnalysis: `
+🌟 **整體和諧度**: ${harmonyPercentage}% - ${overallHarmony ? '高度和諧共振' : '動態平衡發展'}
+
+🏺 **星座原型**: ${zodiac.name} (${correlation.element?.toUpperCase()}象 × ${correlation.modality === 'cardinal' ? '開創' : correlation.modality === 'fixed' ? '固定' : '變動'}座)
+   核心主題: ${correlation.theme} | ${zodiac.lifeTheme}
+   關鍵特質: ${zodiac.keywords.join('、')}
+
+🃏 **塔羅原型**: ${soulCard === personalityCard ? `統一型-${soulCard}號${cardDetails[soulCard]?.name}` : `靈魂牌${soulCard}號${cardDetails[soulCard]?.name}、個性牌${personalityCard}號${cardDetails[personalityCard]?.name}${shadowCard ? `、陰影牌${shadowCard}號${cardDetails[shadowCard]?.name}` : ''}${giftCard ? `、天賦牌${giftCard}號${cardDetails[giftCard]?.name}` : ''}`}
+
+🔮 **多維度共鳴分析**:
+${soulDimensionText}
+
+${personalityDimensionText}
+
+${shadowCard ? shadowDimensionText : ''}
+
+${giftCard ? giftDimensionText : ''}
+
+🌈 **元素與形態整合**:
+您的${zodiac.name}具有${elementAnalysis[correlation.element]}，結合${modalityAnalysis[correlation.modality]}，這與您的塔羅原型創造了${overallHarmony ? '高度協調的' : '互補平衡的'}能量動態。
+
+${overallHarmony ? 
+  `✨ **和諧共振**: 您的星座與塔羅能量高度一致，形成強大的統合人格。這種天然優勢讓您在相關領域具有出色的表現力，但需注意避免過度單一化發展。` : 
+  `⚖️ **動態整合**: 您的星座與塔羅呈現豐富的多元性，這種內在張力是珍貴的成長動力。學會在不同情境中靈活運用不同面向的能量，將帶來更全面的自我實現。`}
+              `,
+              suggestions: `🎯 **${harmonyPercentage >= 80 ? '高和諧' : harmonyPercentage >= 60 ? '中和諧' : '低和諧'}整合策略**:
+
+🌟 **星座優勢發揮**:
+• 在${correlation.theme}相關領域深度發展您的天賦
+• 運用${zodiac.name}的${zodiac.keywords[0]}特質作為核心驅動力
+• 善用${correlation.element}象的${elementAnalysis[correlation.element].split('帶來')[1] || '特質'}
+
+🃏 **塔羅智慧整合**:
+• 在遇到${zodiac.challenges.split('、')[0]}挑戰時，參考塔羅牌的指引
+• 透過冥想或占卜連結您的塔羅原型能量
+• 將塔羅的深層洞察融入${zodiac.name}的日常表達中
+
+🔄 **動態平衡練習**:
+• ${harmonyPercentage >= 70 ? '保持' : '建立'}星座與塔羅能量的流動性切換
+• 在不同生活領域中嘗試不同的能量組合
+• 定期檢視並調整兩個系統的整合程度
+
+💎 **成長重點**:
+• ${overallHarmony ? `避免過度依賴天然優勢，培養其他面向的能力` : `擁抱差異性帶來的學習機會，將對比轉化為互補`}
+• 在關係中展現星座與塔羅的多層次魅力
+• 持續探索兩個系統的新連結點與應用方式`
+            };
+          };
+
+          const handleAnalyze = () => {
+            if (!birthDate) {
+              alert('請輸入出生日期');
+              return;
+            }
+            
+            const tarotCards = calculateTarotCards(birthDate);
+            const zodiacSign = getZodiacSign(birthDate);
+            const zodiacAnalysis = analyzeZodiacTarotConnection(zodiacSign, tarotCards);
+            
+            setResults({
+              birthDate,
+              tarotCards,
+              zodiacSign,
+              zodiacAnalysis
+            });
+          };
+
+          const CardDisplay = ({ icon, title, cardId, bgColor, textColor, borderColor, description }) => {
+            if (cardId === null || cardId === undefined || !cardDetails[cardId]) return null;
+            const details = cardDetails[cardId];
+            
+            return (
+              <div className={`${bgColor} rounded-lg p-4 shadow-md border-l-4 ${borderColor} transition-all duration-300`}>
+                <div className="relative mb-3">
+                  <img
+                    src={sharedGetCardImagePath(cardId)}
+                    alt={details.name}
+                    className="w-full max-w-[120px] mx-auto rounded-lg shadow-md object-cover border-2 border-white"
+                    onError={(e) => e.target.style.display = 'none'}
+                    loading="lazy"
+                    width="120"
+                    height="200"
+                  />
+                </div>
+                
+                <div className="flex items-center gap-2 mb-2">{icon}<h3 className={`font-semibold ${textColor}`}>{title}</h3></div>
+                <div className={`text-xl font-bold ${textColor} mb-1`}>{cardId} - {details.name}</div>
+                <p className={`text-sm font-semibold ${textColor} mb-2`}>{details.shortMeaning}</p>
+                {description && <p className={`text-xs ${textColor} opacity-80`}>{description}</p>}
+              </div>
+            );
+          };
+
+          return (
+            <div className="max-w-4xl mx-auto p-4 sm:p-6 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-xl shadow-xl font-sans">
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-purple-800 mb-2 flex items-center justify-center gap-2">
+                  <Sparkles className="w-8 h-8" />塔羅生命藍圖 × 太陽星座整合解析
+                </h1>
+                <p className="text-gray-600">深度結合塔羅生命靈數與太陽星座特質的個人命理分析</p>
+              </div>
+
+              {/* Input Section */}
+              <div className="bg-white rounded-lg p-6 shadow-md mb-6">
+                <div className="max-w-md mx-auto">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 text-center">
+                    <Calendar /> 請輸入您的出生日期
+                  </label>
+                  <input 
+                    type="date" 
+                    value={birthDate} 
+                    onChange={(e) => setBirthDate(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 text-center text-lg"
+                  />
+                  <button 
+                    onClick={handleAnalyze}
+                    className="w-full mt-4 bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-md hover:from-purple-700 hover:to-indigo-700 transition-colors font-semibold flex items-center justify-center gap-2"
+                  >
+                    <Sparkles className="w-5 h-5" /> 開始深度解析
+                  </button>
+                </div>
+              </div>
+
+              {results && (
+                <div className="space-y-6 animate-fade-in">
+                  {/* Overview Cards */}
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-white rounded-lg p-6 shadow-md">
+                      <h3 className="text-xl font-bold text-orange-800 mb-4 flex items-center gap-2">
+                        ♈ 您的太陽星座
+                      </h3>
+                      {results.zodiacSign && zodiacSigns[results.zodiacSign] && (
+                        <div className="space-y-3">
+                          <div className="text-center p-4 bg-orange-50 rounded-lg">
+                            <h4 className="text-2xl font-bold text-orange-700 mb-1">
+                              {zodiacSigns[results.zodiacSign].name}
+                            </h4>
+                            <p className="text-sm text-gray-600">{zodiacSigns[results.zodiacSign].dates}</p>
+                            <p className="text-lg font-semibold text-orange-600 mt-2">{zodiacSigns[results.zodiacSign].lifeTheme}</p>
+                          </div>
+                          <div className="grid grid-cols-1 gap-2 text-sm">
+                            <p><strong>元素:</strong> <span className="text-orange-600">{zodiacSigns[results.zodiacSign].element}</span></p>
+                            <p><strong>關鍵字:</strong> <span className="text-blue-600">{zodiacSigns[results.zodiacSign].keywords.join('、')}</span></p>
+                            <p><strong>優勢特質:</strong> {zodiacSigns[results.zodiacSign].traits}</p>
+                            <p><strong>成長課題:</strong> <span className="text-red-600">{zodiacSigns[results.zodiacSign].challenges}</span></p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-white rounded-lg p-6 shadow-md">
+                      <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">
+                        🌟 您的塔羅生命牌組
+                      </h3>
+                      <div className="grid grid-cols-1 gap-3">
+                        <CardDisplay 
+                          icon={<Hash className="w-4 h-4 text-purple-600" />} 
+                          title="靈魂牌" 
+                          cardId={results.tarotCards.soulCard} 
+                          bgColor="bg-purple-50" 
+                          textColor="text-purple-900" 
+                          borderColor="border-purple-500"
+                          description="您的核心本質與最高使命"
+                        />
+                        {results.tarotCards.personalityCard !== results.tarotCards.soulCard && (
+                          <CardDisplay 
+                            icon={<User className="w-4 h-4 text-pink-600" />} 
+                            title="個性牌" 
+                            cardId={results.tarotCards.personalityCard} 
+                            bgColor="bg-pink-50" 
+                            textColor="text-pink-900" 
+                            borderColor="border-pink-500"
+                            description="您的外在表現與學習課題"
+                          />
+                        )}
+                        {results.tarotCards.shadowCard && (
+                          <CardDisplay 
+                            icon={<Shield className="w-4 h-4 text-slate-600" />} 
+                            title="陰影牌" 
+                            cardId={results.tarotCards.shadowCard} 
+                            bgColor="bg-slate-50" 
+                            textColor="text-slate-900" 
+                            borderColor="border-slate-500"
+                            description="需要整合的內在潛能與挑戰"
+                          />
+                        )}
+                        {results.tarotCards.giftCard && (
+                          <CardDisplay 
+                            icon={<Gift className="w-4 h-4 text-yellow-600" />} 
+                            title="天賦牌" 
+                            cardId={results.tarotCards.giftCard} 
+                            bgColor="bg-yellow-50" 
+                            textColor="text-yellow-900" 
+                            borderColor="border-yellow-500"
+                            description="太陽三重奏的核心天賦能量"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Integration Analysis */}
+                  {results.zodiacAnalysis && (
+                    <div className="bg-white rounded-lg p-6 shadow-md">
+                      <h3 className="text-2xl font-bold text-indigo-800 mb-4 flex items-center gap-2">
+                        🔄 太陽星座 × 塔羅生命牌 整合解析
+                      </h3>
+                      
+                      <div className="mb-6 p-4 rounded-lg border-l-4 border-indigo-500" style={{backgroundColor: results.zodiacAnalysis.overallHarmony ? '#f0fdf4' : '#fef3c7'}}>
+                        <div className={`text-xl font-bold mb-2 ${results.zodiacAnalysis.overallHarmony ? 'text-green-700' : 'text-yellow-700'}`}>
+                          {results.zodiacAnalysis.overallHarmony ? '🔥 高度和諧共振' : '⚖️ 動態平衡發展'}
+                        </div>
+                        <div className="prose prose-sm max-w-none text-gray-800 whitespace-pre-line">
+                          {results.zodiacAnalysis.detailedAnalysis}
+                        </div>
+                      </div>
+
+                      <div className="p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                        <h4 className="font-bold text-blue-800 mb-3">🎯 個人成長整合建議</h4>
+                        <div className="text-sm text-blue-900 whitespace-pre-line leading-relaxed">
+                          {results.zodiacAnalysis.suggestions}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Footer */}
+                  <div className="text-center p-6 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+                    <h4 className="text-lg font-bold text-purple-800 mb-3">🙏 解析說明</h4>
+                    <p className="text-gray-700 leading-relaxed text-sm">
+                      此解析結合了您的太陽星座特質與塔羅生命靈數，提供一個全方位的個人特質分析。太陽星座反映您的外在表達與核心動機，塔羅生命牌則揭示您的靈魂使命與內在課題。通過理解兩者的關係，您可以更好地整合不同面向的自我，活出更完整、更真實的人生。
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        };
+
         // --- MAIN APP COMPONENT ---
         const App = () => {
-          const [activeCalculator, setActiveCalculator] = useState('birth'); // 'birth', 'compatibility', 'fortune'
+          const [activeCalculator, setActiveCalculator] = useState('comprehensive'); // 'comprehensive', 'birth', 'compatibility', 'fortune'
 
           const navButtonBaseClass = "px-3 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-offset-2";
           const activeNavButtonClass = "bg-purple-600 text-white shadow-lg transform scale-105 focus:ring-purple-500";
@@ -1160,6 +1799,12 @@
             <div className="container mx-auto p-2 sm:p-4 min-h-screen">
               <nav className="text-center mb-6 sm:mb-10 p-2 sm:p-4 bg-purple-200 rounded-lg shadow-md">
                 <div className="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-2 md:space-x-4">
+                    <button 
+                        onClick={() => setActiveCalculator('comprehensive')}
+                        className={`${navButtonBaseClass} ${activeCalculator === 'comprehensive' ? activeNavButtonClass : inactiveNavButtonClass}`}
+                    >
+                        <Sparkles className="inline-block w-4 h-4 sm:w-5 sm:h-5 mr-2" /> 綜合命理解析
+                    </button>
                     <button 
                         onClick={() => setActiveCalculator('birth')}
                         className={`${navButtonBaseClass} ${activeCalculator === 'birth' ? activeNavButtonClass : inactiveNavButtonClass}`}
@@ -1182,6 +1827,7 @@
               </nav>
 
               <div className="animate-fade-in">
+                  {activeCalculator === 'comprehensive' && <ComprehensiveTarotSession />}
                   {activeCalculator === 'birth' && <TarotBirthCardsCalculator />}
                   {activeCalculator === 'compatibility' && <TarotCompatibilitySystem />}
                   {activeCalculator === 'fortune' && <FortuneCardCalculator />}
