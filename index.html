@@ -240,6 +240,10 @@
             return n.toString().split('').map(Number).reduce((a, b) => a + b, 0);
         };
 
+        const getCardChallenges = (id) => {
+            return cardDetails[id]?.challenges || '挑戰描述暫不可用';
+        };
+
         const sharedReduceToSingleDigit = (n) => {
             let num = n;
             while (num > 9) {
