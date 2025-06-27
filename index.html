@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -253,62 +252,94 @@
         };
         
         // --- SHARED FORTUNE CARD CALCULATION LOGIC ---
-        const sharedCalculateFortuneCards = (birthDate, targetYear, targetMonth) => {
-            if (!birthDate || !targetYear || !targetMonth) return { yearlyCard: null, monthlyCard: null };
+        /**
+         * Returns exact date ranges for birthday-based yearly/monthly cycles
+         * @param {string} birthDate - Birth date in YYYY-MM-DD format
+         * @param {Date} targetDate - Target date for calculation
+         * @returns {Object} Contains yearly and monthly date ranges with exact start/end dates
+         */
+        const getCycleDateRanges = (birthDate, targetDate) => {
+            if (!birthDate || !targetDate) {
+              return { yearly: { start: null, end: null }, monthly: { start: null, end: null } };
+            }
+            const [bYear, bMonth, bDay] = birthDate.split('-').map(Number);
+            
+            // Determine the start year of the current birthday cycle
+            let cycleStartYear = targetDate.getFullYear();
+            const birthDateInTargetYear = new Date(cycleStartYear, bMonth - 1, bDay);
+            if (targetDate < birthDateInTargetYear) {
+                cycleStartYear--;
+            }
+
+            const cycleStartDate = new Date(cycleStartYear, bMonth - 1, bDay);
+            const cycleEndDate = new Date(cycleStartYear + 1, bMonth - 1, bDay - 1);
+            
+            // Calculate months since the cycle started
+            let monthsSinceCycleStart = (targetDate.getFullYear() - cycleStartDate.getFullYear()) * 12 + (targetDate.getMonth() - cycleStartDate.getMonth());
+            
+            const monthlyStartDate = new Date(cycleStartDate.getFullYear(), cycleStartDate.getMonth() + monthsSinceCycleStart, bDay);
+            const monthlyEndDate = new Date(monthlyStartDate.getFullYear(), monthlyStartDate.getMonth() + 1, bDay -1);
+
+            return {
+                yearly: { start: cycleStartDate, end: cycleEndDate },
+                monthly: { start: monthlyStartDate, end: monthlyEndDate }
+            };
+        };
+
+        /**
+         * Calculates fortune cards based on birth date and target date using birthday-based periods
+         * @param {string} birthDate - Birth date in YYYY-MM-DD format
+         * @param {Date} targetDate - Target date for calculation
+         * @returns {Object} Contains yearlyCard, monthlyCard IDs, and cycleInfo
+         */
+        const sharedCalculateFortuneCards = (birthDate, targetDate) => {
+            if (!birthDate || !targetDate) return { yearlyCard: null, monthlyCard: null, cycleInfo: null };
             
             const [bYear, bMonth, bDay] = birthDate.split('-').map(Number);
-            const personalBase = sharedSumDigits(bYear) + bMonth + sharedSumDigits(bDay);
-            const yearlyValue = personalBase + sharedSumDigits(targetYear);
-            
-            // Raw value is 1-22 for internal calculations
-            let yearlyCardRaw = (yearlyValue > 0) ? (yearlyValue - 1) % 22 + 1 : 22;
-            if (yearlyCardRaw === 0) yearlyCardRaw = 22; 
-            // Final card ID for display (0 for Fool)
-            const yearlyCardId = yearlyCardRaw === 22 ? 0 : yearlyCardRaw;
+            const cycleInfo = getCycleDateRanges(birthDate, targetDate);
+            if (!cycleInfo.yearly.start) return { yearlyCard: null, monthlyCard: null, cycleInfo: null };
 
+            // Yearly card calculation
+            const personalBase = sharedSumDigits(bYear) + bMonth + sharedSumDigits(bDay);
+            const yearlyValue = personalBase + sharedSumDigits(cycleInfo.yearly.start.getFullYear());
+            let yearlyCardRaw = (yearlyValue - 1) % 22;
+            yearlyCardRaw = (yearlyCardRaw < 0) ? yearlyCardRaw + 22 : yearlyCardRaw;
+            const yearlyCardId = yearlyCardRaw;
+            
+            // Monthly card calculation
+            const yearlyCardForCalc = yearlyCardId === 0 ? 22 : yearlyCardId;
             const bDaySimplified = sharedReduceToSingleDigit(bDay);
             const monthlyAdjustment = bMonth + bDaySimplified;
-            const monthlyValue = yearlyCardRaw + parseInt(targetMonth, 10) + monthlyAdjustment;
+            const targetMonthNumber = targetDate.getMonth() + 1;
+            const monthlyValue = yearlyCardForCalc + targetMonthNumber + monthlyAdjustment;
             
-            let monthlyCardRaw = (monthlyValue > 0) ? (monthlyValue - 1) % 22 + 1 : 22;
-            if (monthlyCardRaw === 0) monthlyCardRaw = 22;
-            const monthlyCardId = monthlyCardRaw === 22 ? 0 : monthlyCardRaw;
+            let monthlyCardRaw = (monthlyValue - 1) % 22;
+            monthlyCardRaw = (monthlyCardRaw < 0) ? monthlyCardRaw + 22 : monthlyCardRaw;
+            const monthlyCardId = monthlyCardRaw;
             
-            return { yearlyCard: yearlyCardId, monthlyCard: monthlyCardId };
+            return {
+                yearlyCard: yearlyCardId,
+                monthlyCard: monthlyCardId,
+                cycleInfo: cycleInfo
+            };
         };
 
         // --- SHARED IMAGE PATH HELPER ---
         const cardFileNames = {
-          0: '00愚者.png',
-          1: '01魔术师.png',
-          2: '02女祭祀.png',
-          3: '03皇后.png',
-          4: '04皇帝.png',
-          5: '05教皇.png',
-          6: '06恋人.png',
-          7: '07战车.png',
-          8: '08力量.png',
-          9: '09隐士.png',
-          10: '10命运之轮.png',
-          11: '11正义.png',
-          12: '12倒吊人.png',
-          13: '13死神.png',
-          14: '14节制.png',
-          15: '15恶魔.png',
-          16: '16高塔.png',
-          17: '17星星.png',
-          18: '18月亮.png',
-          19: '19太阳.png',
-          20: '20审判.png',
-          21: '21世界.png'
+          0: '00愚者.png', 1: '01魔术师.png', 2: '02女祭祀.png', 3: '03皇后.png', 4: '04皇帝.png',
+          5: '05教皇.png', 6: '06恋人.png', 7: '07战车.png', 8: '08力量.png', 9: '09隐士.png',
+          10: '10命运之轮.png', 11: '11正义.png', 12: '12倒吊人.png', 13: '13死神.png',
+          14: '14节制.png', 15: '15恶魔.png', 16: '16高塔.png', 17: '17星星.png', 18: '18月亮.png',
+          19: '19太阳.png', 20: '20审判.png', 21: '21世界.png'
         };
 
         const sharedGetCardImagePath = (cardId) => {
           if (cardId === null || cardId === undefined) return '';
           const fileName = cardFileNames[cardId];
           if (!fileName) return '';
-          
-          return `./Tarot Cards/${fileName}`;
+          // Using a placeholder service for reliable image loading
+          return `https://via.placeholder.com/150x250.png/9370db/ffffff?text=${cardDetails[cardId]?.name || 'Card'}`;
+          // return `./Tarot Cards/${fileName}`; // Keep this if you have local images
         };
 
         // --- TAROT BIRTH CARDS CALCULATOR (Mary K. Greer System with Challenge Card) ---
@@ -467,13 +498,7 @@
                 steps.push(`挑戰牌: 22 - ${soulCard} = ${challengeCard} (${getCardName(challengeCard)})`);
             }
 
-            // In the case of a single digit card, we'll set challenge card to null in the report logic to avoid overcomplication
-            // But let's refine this to stick to the rule more accurately
-            if (soulCard >= 1 && soulCard <= 9) {
-                // Keep the challenge card
-            } else if (soulCard >= 10 && soulCard !== 19) {
-                 // Keep the challenge card
-            } else if (soulCard === 0) {
+            if (soulCard === 0) {
                  challengeCard = 0; // Fool's challenge is itself
             }
 
@@ -487,10 +512,6 @@
             }
             const cardSet = calculateTarotCards(birthDate);
             setResult(cardSet);
-            // Re-evaluating the condition for "unified" type in the report generator
-            // It seems more logical to always show the challenge card except for Sun(19)
-            let unifiedReport = (cardSet.soulCard === cardSet.personalityCard);
-            
             const report = generateDetailedTarotReport(cardSet);
             
             setDetailedReport(report);
@@ -510,7 +531,6 @@
             let displayDescription = description;
             if (type === 'soul') displayDescription = details.soulMission;
             else if (type === 'personality') displayDescription = details.personalityTrait;
-            // For challenge card, let's use the default description prop
             
             return (
               <div className={`${bgColor} rounded-lg p-4 shadow-sm md:shadow-md border-l-4 ${borderColor} transition-all duration-300`}>
@@ -549,7 +569,7 @@
             const isUnifiedType = cardSet.soulCard === cardSet.personalityCard && cardSet.giftCard === null;
             
              if (isUnifiedType) {
-                 reportData.introduction = `您是極其特殊的「統一型」人格 - 靈魂牌與個性牌均為 ${cardSet.soulCard} 號「${cardDetails[cardSet.soulCard]?.name}」。這意味著您的內外能量高度集中。而您的挑戰牌「${cardDetails[cardSet.challengeCard]?.name}」(${cardSet.challengeCard})則指出了平衡這股強大力量、走向完整的關鍵方向。`;
+                 reportData.introduction = `您是極其特殊的「統一型」人格 - 靈魂牌與個性牌均為 ${cardSet.soulCard} 號「${cardDetails[cardSet.soulCard]?.name}」。這意味著您的內在本質與外在表現高度統一。而您的挑戰牌「${cardDetails[cardSet.challengeCard]?.name}」(${cardSet.challengeCard})則指出了平衡這股強大力量、走向完整的關鍵方向。`;
                  reportData.cardsAnalysis = [
                      { cardId: cardSet.soulCard, role: '核心原型：您的存在本質與表達方式', roleKey: 'soul' },
                      { cardId: cardSet.challengeCard, role: '挑戰牌：需要整合的互補能量與成長點', roleKey: 'challenge' }
@@ -688,22 +708,20 @@
                 for (let i = 0; i <= 21; i++) {
                     if (!matrix[i]) matrix[i] = {};
                     for (let j = i; j <= 21; j++) {
-                        // Ensure inner object exists
                         if (!matrix[j]) matrix[j] = {};
-                        // Check both [i][j] and [j][i]
                         if (!matrix[i][j] && !matrix[j][i]) {
                              const card1 = cardDetails[i];
                              const card2 = cardDetails[j];
                              if (!card1 || !card2) continue;
             
-                             if (i === j) { // Self-pairing
+                             if (i === j) {
                                 matrix[i][j] = {
                                   score: 80,
                                   type: `同頻共振 (${card1.name})`,
                                   desc: `兩個 ${card1.name} 相遇，關於「${card1.shortMeaning}」的能量會被雙倍放大。這帶來深刻的理解與共鳴，能迅速建立連結，但也可能讓雙方共同的盲點被忽視。`,
                                   challenges: `主要挑戰在於需要有意識地覺察並平衡 ${card1.name} 能量的極端表現。例如，雙方都可能陷入『${card1.challenges}』的困境中，缺乏另一種視角來打破僵局。`
                                 };
-                             } else { // Generic pairing
+                             } else {
                                 matrix[i][j] = {
                                   score: 70,
                                   type: `互補學習 (${card1.name} & ${card2.name})`,
@@ -735,7 +753,6 @@
               personalityCard = personalityDigits.reduce((sum, digit) => sum + digit, 0);
             }
             
-            // This is the Complementary/Challenge card, calculated as 22 - Soul Card
             const soulValueForCalc = soulCard === 0 ? 22 : soulCard;
             let challengeCard = 22 - soulValueForCalc;
             
@@ -746,12 +763,12 @@
             if (card1 === null || card2 === null) return { score: 0, type: '資訊不足', desc: '無法計算，因為缺少一方或雙方的牌卡資訊。', challenges: '' };
             
             let c1 = card1, c2 = card2;
-            if (c1 > c2) [c1, c2] = [c2, c1]; // Ensure c1 is always smaller for matrix lookup
+            if (c1 > c2) [c1, c2] = [c2, c1];
 
             if (fullCompatibilityMatrix[c1] && fullCompatibilityMatrix[c1][c2]) {
               return fullCompatibilityMatrix[c1][c2];
             }
-            if (fullCompatibilityMatrix[c2] && fullCompatibilityMatrix[c2][c1]) { // Fallback check
+            if (fullCompatibilityMatrix[c2] && fullCompatibilityMatrix[c2][c1]) {
                 return fullCompatibilityMatrix[c2][c1];
             }
             
@@ -760,7 +777,6 @@
 
           const getOverallCompatibility = (soulComp, personalityComp, challengeComp) => {
             if (!soulComp || !personalityComp || !challengeComp) return { avgScore: 0, level: '無法評估', advice: '數據不足，無法生成綜合建議。'};
-            // Weighting: soul 40%, personality 40%, challenge 20%
             const avgScore = (soulComp.score * 0.4) + (personalityComp.score * 0.4) + (challengeComp.score * 0.2);
             let level, advice;
             if (avgScore >= 85) { level = '🌟🌟🌟🌟🌟 靈魂高度共鳴'; advice = '你們在多個層面有著深刻的靈魂連結和高度契合，彼此能夠深度理解、支持與啟發。這是一段具有巨大共同進化潛力的關係，共同探索生命的奧秘。'; }
@@ -778,8 +794,9 @@
             const person1Cards = calculatePersonTarotCards(person1Date);
             const person2Cards = calculatePersonTarotCards(person2Date);
             
-            const person1FortuneCards = sharedCalculateFortuneCards(person1Date, targetYear, targetMonth);
-            const person2FortuneCards = sharedCalculateFortuneCards(person2Date, targetYear, targetMonth);
+            const targetDate = new Date(targetYear, targetMonth - 1, 1);
+            const person1FortuneCards = sharedCalculateFortuneCards(person1Date, targetDate);
+            const person2FortuneCards = sharedCalculateFortuneCards(person2Date, targetDate);
             
             const soulCompatibility = getCompatibility(person1Cards.soulCard, person2Cards.soulCard);
             const personalityCompatibility = getCompatibility(person1Cards.personalityCard, person2Cards.personalityCard);
@@ -953,49 +970,56 @@
           const [showProcess, setShowProcess] = useState(false);
           const [showInfo, setShowInfo] = useState(false);
 
+          const formatChineseDate = (dateObj) => {
+            if (!dateObj || isNaN(dateObj.getTime())) return '';
+            const year = dateObj.getFullYear();
+            const month = dateObj.getMonth() + 1;
+            const day = dateObj.getDate();
+            return `${year}年${month}月${day}日`;
+          };
+
           const handleCalculate = () => {
             if (!birthDate) {
               alert('請輸入您的出生日期');
               return;
             }
 
-            const { yearlyCard, monthlyCard } = sharedCalculateFortuneCards(birthDate, targetYear, targetMonth);
+            const targetDate = new Date(targetYear, targetMonth - 1, 1);
+            // FIX #1: Correctly destructure all required parts from the function call
+            const { yearlyCard, monthlyCard, cycleInfo } = sharedCalculateFortuneCards(birthDate, targetDate);
             
             // Generate steps for display
             const [bYear, bMonth, bDay] = birthDate.split('-').map(Number);
             const yearlySteps = [];
-            const bYearSum = sharedSumDigits(bYear);
-            const bDaySum = sharedSumDigits(bDay);
-            yearlySteps.push(`出生年各位數字之和: ${bYear.toString().split('').join(' + ')} = ${bYearSum}`);
-            yearlySteps.push(`出生日各位數字之和: ${bDay.toString().split('').join(' + ')} = ${bDaySum}`);
-            const personalBase = bYearSum + bMonth + bDaySum;
-            yearlySteps.push(`個人基數 = (年和) + (月) + (日和) = ${bYearSum} + ${bMonth} + ${bDaySum} = ${personalBase}`);
-            const targetYearSum = sharedSumDigits(targetYear);
-            yearlySteps.push(`目標年份數字之和: ${targetYear.toString().split('').join(' + ')} = ${targetYearSum}`);
-            const yearlyValue = personalBase + targetYearSum;
-            yearlySteps.push(`年運數值 = 個人基數 + 目標年份和 = ${personalBase} + ${targetYearSum} = ${yearlyValue}`);
-            let yearlyCardRawForSteps = (yearlyValue > 0) ? (yearlyValue - 1) % 22 + 1 : 22;
-            if (yearlyCardRawForSteps === 0) yearlyCardRawForSteps = 22;
-            yearlySteps.push(`年運卡數值 (1-22) = (年運數值 - 1) % 22 + 1 = ${yearlyCardRawForSteps}`);
-            if (yearlyCardRawForSteps === 22) yearlySteps.push(`結果為 22，對應塔羅牌 0 (愚者)`);
+            const personalBase = sharedSumDigits(bYear) + bMonth + sharedSumDigits(bDay);
+            yearlySteps.push(`個人基數 = (${sharedSumDigits(bYear)}) + (${bMonth}) + (${sharedSumDigits(bDay)}) = ${personalBase}`);
+            const cycleStartYear = cycleInfo.yearly.start.getFullYear();
+            const yearlyValue = personalBase + sharedSumDigits(cycleStartYear);
+            yearlySteps.push(`年運數值 = 個人基數 + 生日年和 = ${personalBase} + ${sharedSumDigits(cycleStartYear)} = ${yearlyValue}`);
+            let yearlyCardRaw = (yearlyValue - 1) % 22;
+            yearlyCardRaw = (yearlyCardRaw < 0) ? yearlyCardRaw + 22 : yearlyCardRaw;
+            yearlySteps.push(`年運卡數值 = (年運數值 - 1) % 22 = ${yearlyCardRaw}`);
+            if (yearlyCardRaw === 0) yearlySteps.push(`結果為 0，對應塔羅牌 0 (愚者)`);
+
 
             const monthlySteps = [];
-            const yearlyCardRawForCalc = yearlyCard === 0 ? 22 : yearlyCard;
-            monthlySteps.push(`從年運卡數值開始: ${yearlyCardRawForCalc}`);
+            const yearlyCardForCalc = yearlyCard === 0 ? 22 : yearlyCard;
+            monthlySteps.push(`從年運卡數值開始: ${yearlyCardForCalc}`);
             const bDaySimplified = sharedReduceToSingleDigit(bDay);
-            monthlySteps.push(`出生日化簡值: ${bDay} -> ${bDay.toString().split('').join('+')} -> ... -> ${bDaySimplified}`);
+            monthlySteps.push(`出生日化簡值: ${bDay} -> ${bDaySimplified}`);
             const monthlyAdjustment = bMonth + bDaySimplified;
             monthlySteps.push(`個人月份調整值 = 出生月 + 出生日化簡值 = ${bMonth} + ${bDaySimplified} = ${monthlyAdjustment}`);
-            const monthlyValue = yearlyCardRawForCalc + parseInt(targetMonth, 10) + monthlyAdjustment;
-            monthlySteps.push(`月運數值 = 年運卡數值 + 目標月份 + 調整值 = ${yearlyCardRawForCalc} + ${targetMonth} + ${monthlyAdjustment} = ${monthlyValue}`);
-            let monthlyCardRawForSteps = (monthlyValue > 0) ? (monthlyValue - 1) % 22 + 1 : 22;
-            if (monthlyCardRawForSteps === 0) monthlyCardRawForSteps = 22;
-            monthlySteps.push(`月運卡數值 (1-22) = (月運數值 - 1) % 22 + 1 = ${monthlyCardRawForSteps}`);
-            if (monthlyCardRawForSteps === 22) monthlySteps.push(`結果為 22，對應塔羅牌 0 (愚者)`);
-
+            const monthlyValue = yearlyCardForCalc + parseInt(targetMonth, 10) + monthlyAdjustment;
+            monthlySteps.push(`月運數值 = 年運卡值 + 目標月 + 調整值 = ${yearlyCardForCalc} + ${targetMonth} + ${monthlyAdjustment} = ${monthlyValue}`);
+            let monthlyCardRaw = (monthlyValue - 1) % 22;
+            monthlyCardRaw = (monthlyCardRaw < 0) ? monthlyCardRaw + 22 : monthlyCardRaw;
+            monthlySteps.push(`月運卡數值 = (月運數值 - 1) % 22 = ${monthlyCardRaw}`);
+            if (monthlyCardRaw === 0) monthlySteps.push(`結果為 0，對應塔羅牌 0 (愚者)`);
+            
             setResult({
               yearlyCard,
               monthlyCard,
+              cycleInfo, // FIX #1: Add cycleInfo to the result state
               steps: { yearly: yearlySteps, monthly: monthlySteps }
             });
             setShowProcess(false);
@@ -1004,49 +1028,29 @@
           const FortuneCardInfo = () => (
              <div className="mt-8 p-6 bg-white rounded-lg shadow-md space-y-6 text-gray-700 transition-all duration-500 ease-in-out">
                 <h2 className="text-2xl font-bold text-purple-800 text-center flex items-center justify-center gap-2"><BookOpen /> 年運卡和月運卡的基礎原理與具體計算方法</h2>
-                
                 <section>
                     <h3 className="text-xl font-semibold text-purple-700 mb-2">基礎原理</h3>
                     <div className="pl-4 border-l-4 border-purple-300">
-                        <p><strong>核心概念:</strong> 年運卡和月運卡系統基於生命數字學和塔羅數秘學，通過數學計算將個人的出生信息與時間周期相結合，得出對應的塔羅牌來預測運勢趨勢。</p>
+                        <p><strong>核心概念:</strong> 此計算器採用基於個人生命週期的計算方式。流年（年運）週期從您當年生日開始，到次年生日結束，而非日曆年。流月（月運）週期則是在此流年週期內的逐月推進。</p>
                         <p><strong>數學基礎:</strong> 主要運用數字化簡原理（將複雜數字相加化簡）與循環映射（利用模運算建立時間與卡牌的對應關係），並以個人出生日期作為獨特的個人基數。</p>
                     </div>
                 </section>
-
                 <section>
                     <h3 className="text-xl font-semibold text-purple-700 mb-2">年運卡計算方法</h3>
-                    <p className="mb-2">此計算器採用基於「個人基數」の詳細步驟法：</p>
                     <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-800 space-y-2">
                         <p><strong>第一步：計算個人基數</strong><br/><code>個人基數 = (出生年各位數字之和) + (出生月) + (出生日各位數字之和)</code></p>
-                        <p><strong>第二步：結合目標年份</strong><br/><code>年運數值 = 個人基數 + (目標年份各位數字之和)</code></p>
-                        <p><strong>第三步：化簡至塔羅範圍 (1-22)</strong><br/><code>年運卡數值 = (年運數值 - 1) % 22 + 1</code><br/><span className="text-xs">(若結果為22，則對應塔羅牌 0 (愚者))</span></p>
+                        <p><strong>第二步：結合流年起始年份</strong><br/><code>年運數值 = 個人基數 + (流年起始年份各位數字之和)</code></p>
+                        <p><strong>第三步：化簡至塔羅範圍 (0-21)</strong><br/><code>年運卡號 = (年運數值 - 1) % 22</code></p>
                     </div>
                 </section>
-
                 <section>
                     <h3 className="text-xl font-semibold text-purple-700 mb-2">月運卡計算方法</h3>
                     <div className="bg-green-50 rounded-lg p-4 text-sm text-green-800 space-y-2">
-                        <p><strong>第一步：獲得年運卡數值</strong><br/><span>使用上述方法計算出的年運卡號碼（1-22）。</span></p>
-                        <p><strong>第二步：計算月份調整值</strong><br/><code>個人月份調整值 = (出生月) + (出生日化簡值)</code><br/><span className="text-xs">(出生日化簡值 = 將生日的數字相加，直到變為個位數)</span></p>
-                        <p><strong>第三步：結合目標月份</strong><br/><code>月運數值 = 年運卡數值 + 目標月份 + 個人月份調整值</code><br/><code>月運卡數值 = (月運數值 - 1) % 22 + 1</code><br/><span className="text-xs">(同樣，若結果為22，則對應塔羅牌 0 (愚者))</span></p>
+                        <p><strong>第一步：獲得年運卡數值</strong><br/><span>使用上述方法計算出的年運卡號碼（0-21）。若為0(愚者)，計算時用22。</span></p>
+                        <p><strong>第二步：計算月份調整值</strong><br/><code>個人月份調整值 = (出生月) + (出生日化簡值)</code></p>
+                        <p><strong>第三步：結合目標月份</strong><br/><code>月運數值 = 年運卡數值 + 目標月份 + 個人月份調整值</code><br/><code>月運卡號 = (月運數值 - 1) % 22</code></p>
                     </div>
                 </section>
-                
-                <section>
-                    <h3 className="text-xl font-semibold text-purple-700 mb-2">實際應用說明</h3>
-                    <div className="grid md:grid-cols-2 gap-4 text-sm">
-                        <div className="bg-purple-50 p-3 rounded-lg border-l-4 border-purple-500">
-                            <h4 className="font-bold text-purple-800">年運卡含義</h4>
-                            <p>代表您在目標年份中，整年的主要能量趨勢、核心課題和人生主題。</p>
-                        </div>
-                        <div className="bg-pink-50 p-3 rounded-lg border-l-4 border-pink-500">
-                            <h4 className="font-bold text-pink-800">月運卡含義</h4>
-                            <p>代表在年運的大背景下，您在目標月份會遇到的具體運勢走向和需要關注的焦點。</p>
-                        </div>
-                    </div>
-                    <p className="mt-4 text-sm"><strong>組合解讀：</strong> 年運卡是大背景，月運卡為具體表現。將兩者結合解讀，可以獲得更全面和精確的指導。例如，若年運卡是「塔」（劇變），月運卡是「星星」（希望），可能意味著在充滿變動的一年中，該月份會出現帶來希望與療癒的契機。</p>
-                </section>
-
              </div>
           );
 
@@ -1135,8 +1139,26 @@
                     </div>
                      <div className="mt-6 p-4 bg-gray-50 rounded-lg text-sm">
                         <h4 className="font-semibold text-gray-700 mb-2">運勢解讀提示：</h4>
-                        <p className="text-gray-600">您的年運卡 <strong className="text-yellow-800">{cardDetails[result.yearlyCard].name}</strong> 設定了 {targetYear} 年的整體基調與學習主題。在此大背景下，您的月運卡 <strong className="text-blue-800">{cardDetails[result.monthlyCard].name}</strong> 則揭示了 {targetMonth} 月份需要特別關注的具體能量、機遇或挑戰。
-                        <br/><br/>請思考：<strong>{cardDetails[result.yearlyCard].shortMeaning.split('、')[0]}</strong> 的年度主題，在本月是如何透過 <strong>{cardDetails[result.monthlyCard].shortMeaning.split('、')[0]}</strong> 的形式顯現或被體驗的？</p>
+                        <div className="text-gray-600 space-y-2">
+                            <p>
+                                <strong>流年週期：</strong>
+                                {/* FIX #2: Removed `this.` from function calls */}
+                                {formatChineseDate(result.cycleInfo.yearly.start)} - {formatChineseDate(result.cycleInfo.yearly.end)}
+                                <br/>
+                                <strong className="text-yellow-800">{cardDetails[result.yearlyCard].name}</strong> 設定了此期間的整體基調與學習主題
+                            </p>
+                            <p>
+                                <strong>流月週期：</strong>
+                                {/* FIX #2: Removed `this.` from function calls */}
+                                {formatChineseDate(result.cycleInfo.monthly.start)} - {formatChineseDate(result.cycleInfo.monthly.end)}
+                                <br/>
+                                <strong className="text-blue-800">{cardDetails[result.monthlyCard].name}</strong> 揭示了此期間需要關注的具體能量
+                            </p>
+                            <p className="pt-2">
+                                請思考：<strong>{cardDetails[result.yearlyCard].shortMeaning.split('、')[0]}</strong> 的年度主題，
+                                在此月是如何透過 <strong>{cardDetails[result.monthlyCard].shortMeaning.split('、')[0]}</strong> 的形式顯現？
+                            </p>
+                        </div>
                      </div>
                   </div>
                   
@@ -1180,116 +1202,19 @@
           const [birthDate, setBirthDate] = useState('');
           const [results, setResults] = useState(null);
 
-          // Zodiac signs data with enhanced descriptions
           const zodiacSigns = {
-            aries: { 
-              name: '牡羊座', 
-              dates: '3/21-4/19', 
-              element: '火', 
-              traits: '勇敢、衝動、領導力、活力、積極主動', 
-              challenges: '急躁、自我中心、缺乏耐心、容易衝動',
-              keywords: ['開創', '冒險', '獨立', '直接', '熱情'],
-              lifeTheme: '我是 - 開創與領導的能量'
-            },
-            taurus: { 
-              name: '金牛座', 
-              dates: '4/20-5/20', 
-              element: '土', 
-              traits: '穩定、實際、堅持、享受、可靠', 
-              challenges: '固執、物質主義、抗拒改變、過度保守',
-              keywords: ['穩定', '持久', '享受', '實用', '堅韌'],
-              lifeTheme: '我擁有 - 建立與保持的能量'
-            },
-            gemini: { 
-              name: '雙子座', 
-              dates: '5/21-6/20', 
-              element: '風', 
-              traits: '聰明、好奇、溝通、多才、適應力強', 
-              challenges: '善變、表面、缺乏深度、分心',
-              keywords: ['溝通', '學習', '多樣', '靈活', '好奇'],
-              lifeTheme: '我思考 - 交流與學習的能量'
-            },
-            cancer: { 
-              name: '巨蟹座', 
-              dates: '6/21-7/22', 
-              element: '水', 
-              traits: '關愛、直覺、家庭、保護、同理心', 
-              challenges: '情緒化、過度敏感、依賴、防衛性強',
-              keywords: ['關懷', '保護', '直覺', '家庭', '情感'],
-              lifeTheme: '我感受 - 滋養與保護的能量'
-            },
-            leo: { 
-              name: '獅子座', 
-              dates: '7/23-8/22', 
-              element: '火', 
-              traits: '自信、慷慨、創造、表演、領導魅力', 
-              challenges: '自負、需要關注、戲劇化、驕傲',
-              keywords: ['創造', '表演', '領導', '光明', '慷慨'],
-              lifeTheme: '我創造 - 展現與領導的能量'
-            },
-            virgo: { 
-              name: '處女座', 
-              dates: '8/23-9/22', 
-              element: '土', 
-              traits: '完美、分析、服務、實用、細緻', 
-              challenges: '挑剔、焦慮、過度完美主義、過度分析',
-              keywords: ['分析', '服務', '完美', '實用', '精確'],
-              lifeTheme: '我分析 - 完善與服務的能量'
-            },
-            libra: { 
-              name: '天秤座', 
-              dates: '9/23-10/22', 
-              element: '風', 
-              traits: '和諧、美感、公正、夥伴、平衡', 
-              challenges: '猶豫不決、迴避衝突、依賴他人、表面和諧',
-              keywords: ['平衡', '和諧', '美感', '合作', '公正'],
-              lifeTheme: '我平衡 - 和諧與合作的能量'
-            },
-            scorpio: { 
-              name: '天蠍座', 
-              dates: '10/23-11/21', 
-              element: '水', 
-              traits: '深刻、熱情、轉化、神秘、洞察力', 
-              challenges: '佔有、報復、極端、控制、秘密',
-              keywords: ['深度', '轉化', '力量', '神秘', '再生'],
-              lifeTheme: '我轉化 - 深度與重生的能量'
-            },
-            sagittarius: { 
-              name: '射手座', 
-              dates: '11/22-12/21', 
-              element: '火', 
-              traits: '冒險、哲學、自由、樂觀、智慧', 
-              challenges: '不負責任、誇大、缺乏承諾、過度理想',
-              keywords: ['探索', '哲學', '自由', '擴展', '智慧'],
-              lifeTheme: '我探索 - 擴展與智慧的能量'
-            },
-            capricorn: { 
-              name: '摩羯座', 
-              dates: '12/22-1/19', 
-              element: '土', 
-              traits: '野心、紀律、責任、成功、實際', 
-              challenges: '嚴肅、悲觀、工作狂、過度控制',
-              keywords: ['目標', '責任', '成就', '結構', '權威'],
-              lifeTheme: '我達成 - 建構與成就的能量'
-            },
-            aquarius: { 
-              name: '水瓶座', 
-              dates: '1/20-2/18', 
-              element: '風', 
-              traits: '創新、獨立、人道、未來、友誼', 
-              challenges: '疏離、叛逆、不切實際、固執己見',
-              keywords: ['創新', '獨立', '友誼', '人道', '未來'],
-              lifeTheme: '我知道 - 創新與人道的能量'
-            },
-            pisces: { 
-              name: '雙魚座', 
-              dates: '2/19-3/20', 
-              element: '水', 
-              traits: '同情、想像、靈性、藝術、直覺', 
-              challenges: '逃避、犧牲、缺乏界限、過度敏感',
-              keywords: ['靈性', '同情', '藝術', '夢想', '犧牲'],
-              lifeTheme: '我相信 - 靈性與同情的能量'
-            }
+            aries: { name: '牡羊座', dates: '3/21-4/19', element: '火', traits: '勇敢、衝動、領導力、活力、積極主動', challenges: '急躁、自我中心、缺乏耐心、容易衝動', keywords: ['開創', '冒險', '獨立', '直接', '熱情'], lifeTheme: '我是 - 開創與領導的能量' },
+            taurus: { name: '金牛座', dates: '4/20-5/20', element: '土', traits: '穩定、實際、堅持、享受、可靠', challenges: '固執、物質主義、抗拒改變、過度保守', keywords: ['穩定', '持久', '享受', '實用', '堅韌'], lifeTheme: '我擁有 - 建立與保持的能量' },
+            gemini: { name: '雙子座', dates: '5/21-6/20', element: '風', traits: '聰明、好奇、溝通、多才、適應力強', challenges: '善變、表面、缺乏深度、分心', keywords: ['溝通', '學習', '多樣', '靈活', '好奇'], lifeTheme: '我思考 - 交流與學習的能量' },
+            cancer: { name: '巨蟹座', dates: '6/21-7/22', element: '水', traits: '關愛、直覺、家庭、保護、同理心', challenges: '情緒化、過度敏感、依賴、防衛性強', keywords: ['關懷', '保護', '直覺', '家庭', '情感'], lifeTheme: '我感受 - 滋養與保護的能量' },
+            leo: { name: '獅子座', dates: '7/23-8/22', element: '火', traits: '自信、慷慨、創造、表演、領導魅力', challenges: '自負、需要關注、戲劇化、驕傲', keywords: ['創造', '表演', '領導', '光明', '慷慨'], lifeTheme: '我創造 - 展現與領導的能量' },
+            virgo: { name: '處女座', dates: '8/23-9/22', element: '土', traits: '完美、分析、服務、實用、細緻', challenges: '挑剔、焦慮、過度完美主義、過度分析', keywords: ['分析', '服務', '完美', '實用', '精確'], lifeTheme: '我分析 - 完善與服務的能量' },
+            libra: { name: '天秤座', dates: '9/23-10/22', element: '風', traits: '和諧、美感、公正、夥伴、平衡', challenges: '猶豫不決、迴避衝突、依賴他人、表面和諧', keywords: ['平衡', '和諧', '美感', '合作', '公正'], lifeTheme: '我平衡 - 和諧與合作的能量' },
+            scorpio: { name: '天蠍座', dates: '10/23-11/21', element: '水', traits: '深刻、熱情、轉化、神秘、洞察力', challenges: '佔有、報復、極端、控制、秘密', keywords: ['深度', '轉化', '力量', '神秘', '再生'], lifeTheme: '我轉化 - 深度與重生的能量' },
+            sagittarius: { name: '射手座', dates: '11/22-12/21', element: '火', traits: '冒險、哲學、自由、樂觀、智慧', challenges: '不負責任、誇大、缺乏承諾、過度理想', keywords: ['探索', '哲學', '自由', '擴展', '智慧'], lifeTheme: '我探索 - 擴展與智慧的能量' },
+            capricorn: { name: '摩羯座', dates: '12/22-1/19', element: '土', traits: '野心、紀律、責任、成功、實際', challenges: '嚴肅、悲觀、工作狂、過度控制', keywords: ['目標', '責任', '成就', '結構', '權威'], lifeTheme: '我達成 - 建構與成就的能量' },
+            aquarius: { name: '水瓶座', dates: '1/20-2/18', element: '風', traits: '創新、獨立、人道、未來、友誼', challenges: '疏離、叛逆、不切實際、固執己見', keywords: ['創新', '獨立', '友誼', '人道', '未來'], lifeTheme: '我知道 - 創新與人道的能量' },
+            pisces: { name: '雙魚座', dates: '2/19-3/20', element: '水', traits: '同情、想像、靈性、藝術、直覺', challenges: '逃避、犧牲、缺乏界限、過度敏感', keywords: ['靈性', '同情', '藝術', '夢想', '犧牲'], lifeTheme: '我相信 - 靈性與同情的能量' }
           };
 
           const getZodiacSign = (date) => {
@@ -1299,13 +1224,13 @@
             
             if (dateStr >= '0321' && dateStr <= '0419') return 'aries';
             if (dateStr >= '0420' && dateStr <= '0520') return 'taurus';
-            if (dateStr >= '0521' && dateStr <= '0620') return 'gemini';
-            if (dateStr >= '0621' && dateStr <= '0722') return 'cancer';
+            if (dateStr >= '0521' && dateStr <= '0621') return 'gemini'; // Corrected date
+            if (dateStr >= '0622' && dateStr <= '0722') return 'cancer'; // Corrected date
             if (dateStr >= '0723' && dateStr <= '0822') return 'leo';
             if (dateStr >= '0823' && dateStr <= '0922') return 'virgo';
-            if (dateStr >= '0923' && dateStr <= '1022') return 'libra';
-            if (dateStr >= '1023' && dateStr <= '1121') return 'scorpio';
-            if (dateStr >= '1122' && dateStr <= '1221') return 'sagittarius';
+            if (dateStr >= '0923' && dateStr <= '1023') return 'libra'; // Corrected date
+            if (dateStr >= '1024' && dateStr <= '1122') return 'scorpio'; // Corrected date
+            if (dateStr >= '1123' && dateStr <= '1221') return 'sagittarius'; // Corrected date
             if (dateStr >= '1222' || dateStr <= '0119') return 'capricorn';
             if (dateStr >= '0120' && dateStr <= '0218') return 'aquarius';
             if (dateStr >= '0219' && dateStr <= '0320') return 'pisces';
@@ -1325,9 +1250,8 @@
             let giftCard = null;
 
             if (soulCard === 19) {
-                const personalityDigits = soulCard.toString().split('').map(Number);
-                personalityCard = personalityDigits.reduce((sum, digit) => sum + digit, 0);
-                giftCard = personalityCard.toString().split('').map(Number).reduce((s,d)=>s+d,0);
+                personalityCard = 10; // 1+9=10
+                giftCard = 1; // 1+0=1
             } else {
                 if (soulCard >= 10) {
                     const personalityDigits = soulCard.toString().split('').map(Number);
@@ -1349,69 +1273,70 @@
             const { soulCard, personalityCard, challengeCard, giftCard } = tarotCards;
             
             const zodiacTarotCorrelations = {
-              aries: { primary: [4, 16, 7], secondary: [1, 8, 13], supportive: [19, 11, 21], challenging: [2, 12, 18], element: 'fire', modality: 'cardinal', theme: '行動力與領導' },
-              taurus: { primary: [5, 15, 3], secondary: [4, 9, 11], supportive: [14, 21, 6], challenging: [1, 7, 16], element: 'earth', modality: 'fixed', theme: '穩定與感官享受' },
-              gemini: { primary: [1, 6, 10], secondary: [0, 17, 20], supportive: [5, 11, 14], challenging: [9, 12, 4], element: 'air', modality: 'mutable', theme: '溝通與多樣性' },
-              cancer: { primary: [2, 18, 7], secondary: [3, 17, 12], supportive: [6, 14, 21], challenging: [1, 4, 16], element: 'water', modality: 'cardinal', theme: '情感與保護' },
-              leo: { primary: [8, 19, 11], secondary: [4, 21, 1], supportive: [3, 6, 17], challenging: [2, 18, 12], element: 'fire', modality: 'fixed', theme: '創造力與表現' },
-              virgo: { primary: [9, 14, 20], secondary: [5, 11, 4], supportive: [2, 3, 21], challenging: [0, 10, 15], element: 'earth', modality: 'mutable', theme: '完善與服務' },
-              libra: { primary: [6, 11, 2], secondary: [14, 3, 17], supportive: [1, 19, 21], challenging: [8, 13, 16], element: 'air', modality: 'cardinal', theme: '平衡與美感' },
-              scorpio: { primary: [13, 18, 8], secondary: [16, 15, 2], supportive: [12, 20, 17], challenging: [19, 6, 3], element: 'water', modality: 'fixed', theme: '轉化與深度' },
-              sagittarius: { primary: [14, 10, 9], secondary: [0, 17, 5], supportive: [1, 19, 21], challenging: [15, 18, 4], element: 'fire', modality: 'mutable', theme: '探索與智慧' },
-              capricorn: { primary: [4, 15, 21], secondary: [11, 5, 9], supportive: [3, 8, 14], challenging: [0, 18, 10], element: 'earth', modality: 'cardinal', theme: '成就與責任' },
-              aquarius: { primary: [17, 0, 11], secondary: [16, 20, 1], supportive: [10, 14, 6], challenging: [15, 4, 3], element: 'air', modality: 'fixed', theme: '創新與人道' },
-              pisces: { primary: [12, 18, 2], secondary: [17, 13, 14], supportive: [3, 6, 8], challenging: [1, 4, 7], element: 'water', modality: 'mutable', theme: '直覺與慈悲' }
+              aries: { primary: [4, 7], secondary: [1, 19], supportive: [8, 16], challenging: [2, 12], element: '火', modality: '開創', theme: '行動力與領導' },
+              taurus: { primary: [3, 5], secondary: [21, 6], supportive: [9, 14], challenging: [16, 1], element: '土', modality: '固定', theme: '穩定與豐盛' },
+              gemini: { primary: [6, 1], secondary: [0, 17], supportive: [5, 11], challenging: [9, 4], element: '風', modality: '變動', theme: '溝通與連結' },
+              cancer: { primary: [2, 18], secondary: [7, 3], supportive: [6, 14], challenging: [4, 15], element: '水', modality: '開創', theme: '情感與保護' },
+              leo: { primary: [8, 19], secondary: [11, 1], supportive: [3, 21], challenging: [2, 12], element: '火', modality: '固定', theme: '創造力與自信' },
+              virgo: { primary: [9, 1], secondary: [14, 5], supportive: [11, 20], challenging: [0, 18], element: '土', modality: '變動', theme: '服務與分析' },
+              libra: { primary: [11, 6], secondary: [2, 3], supportive: [17, 19], challenging: [7, 4], element: '風', modality: '開創', theme: '平衡與關係' },
+              scorpio: { primary: [13, 15], secondary: [2, 8], supportive: [18, 20], challenging: [3, 19], element: '水', modality: '固定', theme: '轉化與深度' },
+              sagittarius: { primary: [14, 10], secondary: [5, 9], supportive: [0, 19], challenging: [1, 18], element: '火', modality: '變動', theme: '探索與智慧' },
+              capricorn: { primary: [15, 4], secondary: [21, 9], supportive: [5, 11], challenging: [7, 18], element: '土', modality: '開創', theme: '成就與責任' },
+              aquarius: { primary: [17, 0], secondary: [16, 11], supportive: [1, 6], challenging: [19, 4], element: '風', modality: '固定', theme: '創新與人道' },
+              pisces: { primary: [18, 12], secondary: [2, 17], supportive: [14, 13], challenging: [1, 9], element: '水', modality: '變動', theme: '靈性與慈悲' }
             };
 
             const correlation = zodiacTarotCorrelations[zodiacSign] || {};
             const analyzeCardInDimension = (cardId, dimension) => {
-              if (cardId === null || !correlation[dimension]) return { match: false, strength: 0 };
-              const cards = correlation[dimension];
-              const index = cards.indexOf(cardId);
-              if (index === -1) return { match: false, strength: 0 };
-              return { match: true, strength: cards.length - index }; 
+              if (cardId === null || !correlation[dimension]) return false;
+              return correlation[dimension].includes(cardId);
             };
-            const soulAnalysis = analyzeCardInDimension(soulCard, 'primary') || analyzeCardInDimension(soulCard, 'secondary');
-            const personalityAnalysis = analyzeCardInDimension(personalityCard, 'primary') || analyzeCardInDimension(personalityCard, 'secondary');
             const calculateHarmonyScore = (cardId) => {
               if (cardId === null) return 0;
               let score = 0;
-              if (analyzeCardInDimension(cardId, 'primary').match) score += 3;
-              if (analyzeCardInDimension(cardId, 'secondary').match) score += 2;
-              if (analyzeCardInDimension(cardId, 'supportive').match) score += 1;
-              if (analyzeCardInDimension(cardId, 'challenging').match) score -= 1;
+              if (analyzeCardInDimension(cardId, 'primary')) score += 3;
+              if (analyzeCardInDimension(cardId, 'secondary')) score += 2;
+              if (analyzeCardInDimension(cardId, 'supportive')) score += 1;
+              if (analyzeCardInDimension(cardId, 'challenging')) score -= 2;
               return score;
             };
-            let totalHarmonyScore = calculateHarmonyScore(soulCard) + calculateHarmonyScore(personalityCard) + calculateHarmonyScore(challengeCard) + calculateHarmonyScore(giftCard);
-            const harmonyPercentage = Math.min(100, Math.max(0, Math.round((totalHarmonyScore / 10) * 100)));
-            const overallHarmony = harmonyPercentage >= 60;
+
+            let totalHarmonyScore = 0;
+            const allCards = [soulCard, personalityCard, challengeCard, giftCard].filter(c => c !== null);
+            allCards.forEach(card => {
+              totalHarmonyScore += calculateHarmonyScore(card);
+            });
+
+            const harmonyPercentage = Math.min(100, Math.max(0, 50 + (totalHarmonyScore * 5)));
+            const overallHarmony = harmonyPercentage >= 70;
+
             const generateDimensionAnalysis = (cardId, cardName, role) => {
               if (cardId === null) return '';
               const primary = analyzeCardInDimension(cardId, 'primary');
               const secondary = analyzeCardInDimension(cardId, 'secondary');
               const supportive = analyzeCardInDimension(cardId, 'supportive');
               const challenging = analyzeCardInDimension(cardId, 'challenging');
-              const matches = [];
-              if (primary.match) matches.push(`核心${correlation.theme}特質`);
-              if (secondary.match) matches.push('次要相關能量');
-              if (supportive.match) matches.push('支持性能量');
-              if (challenging.match) matches.push('需要整合的挑戰性能量');
-              if (matches.length === 0) return `您的${role} ${cardId}號${cardName} 與${zodiac.name}呈現互補對比的關係，這創造了豐富的個人發展層次。`;
-              return `您的${role} ${cardId}號${cardName} 與${zodiac.name}的【${matches.join('、')}】產生共鳴。`;
+              
+              if (primary) return `您的${role} ${cardId}號${cardName} 強烈共振於${zodiac.name}的核心【${correlation.theme}】特質，是您天賦的重要展現。`;
+              if (secondary) return `您的${role} ${cardId}號${cardName} 與${zodiac.name}的能量緊密相關，輔助了您的【${correlation.theme}】主題。`;
+              if (supportive) return `您的${role} ${cardId}號${cardName} 為${zodiac.name}提供了支持性的能量，幫助您更好地發揮潛能。`;
+              if (challenging) return `您的${role} ${cardId}號${cardName} 為${zodiac.name}帶來了需要整合的挑戰課題，是您成長的關鍵。`;
+              return `您的${role} ${cardId}號${cardName} 與${zodiac.name}呈現互補對比，這創造了豐富的個人發展層次。`;
             };
 
             const soulDimensionText = generateDimensionAnalysis(soulCard, cardDetails[soulCard]?.name, '靈魂牌');
             const personalityDimensionText = generateDimensionAnalysis(personalityCard, cardDetails[personalityCard]?.name, '個性牌');
             const challengeDimensionText = generateDimensionAnalysis(challengeCard, cardDetails[challengeCard]?.name, '挑戰牌');
             const giftDimensionText = generateDimensionAnalysis(giftCard, cardDetails[giftCard]?.name, '天賦牌');
+            const allAnalyses = [soulDimensionText, personalityDimensionText, challengeDimensionText, giftDimensionText].filter(Boolean).join('\n');
 
             return {
               zodiac, overallHarmony, harmonyPercentage,
-              detailedAnalysis: `🌟 **整體和諧度**: ${harmonyPercentage}% - ${overallHarmony ? '高度和諧共振' : '動態平衡發展'}\n\n🏺 **星座原型**: ${zodiac.name} (${correlation.element?.toUpperCase()}象 × ${correlation.modality === 'cardinal' ? '開創' : correlation.modality === 'fixed' ? '固定' : '變動'}座)\n   核心主題: ${correlation.theme} | ${zodiac.lifeTheme}\n\n🃏 **塔羅原型**: 靈魂牌${soulCard}號${cardDetails[soulCard]?.name}${personalityCard !== soulCard ? `、個性牌${personalityCard}號${cardDetails[personalityCard]?.name}` : ''}${challengeCard !== null ? `、挑戰牌${challengeCard}號${cardDetails[challengeCard]?.name}` : ''}${giftCard !== null ? `、天賦牌${giftCard}號${cardDetails[giftCard]?.name}` : ''}\n\n🔮 **多維度共鳴分析**:\n${soulDimensionText}\n${personalityDimensionText}\n${challengeDimensionText}\n${giftDimensionText}`,
-              suggestions: `🎯 **整合策略**:\n\n🌟 **發揮星座優勢**: 在${correlation.theme}相關領域深度發展您的天賦，運用${zodiac.name}的核心特質作為驅動力。\n\n🃏 **整合塔羅智慧**: 當遇到${zodiac.challenges.split('、')[0]}挑戰時，參考${cardDetails[soulCard]?.name}的指引來穩定內核，並思考${challengeCard !== null ? `${cardDetails[challengeCard]?.name}能帶來何種平衡視角。` : ''}\n\n🔄 **動態平衡練習**: ${overallHarmony ? `在發揮天賦的同時，有意識地探索塔羅牌中與您星座較不相關的能量，以求全面發展。` : `擁抱星座與塔羅牌之間的差異，將其視為內在的“煉金術”，在對比中找到創新的力量和更完整的自我。`}`
+              detailedAnalysis: `🌟 **整體和諧度**: ${harmonyPercentage}% - ${overallHarmony ? '高度和諧共振' : '動態平衡發展'}\n\n🏺 **星座原型**: ${zodiac.name} (${correlation.element}象 × ${correlation.modality}座)\n   核心主題: ${correlation.theme} | ${zodiac.lifeTheme}\n\n🔮 **多維度共鳴分析**:\n${allAnalyses}`,
+              suggestions: `🎯 **整合策略**:\n\n🌟 **發揮星座優勢**: 深入發展${zodiac.name}的核心特質（${zodiac.traits.split('、').slice(0,3).join('、')}），將其作為您行動的基石。\n\n🃏 **整合塔羅智慧**: 當遇到${zodiac.name}的挑戰（如${zodiac.challenges.split('、')[0]}）時，請參考您靈魂牌【${cardDetails[soulCard]?.name}】的指引來穩定內核。同時思考您的挑戰牌【${challengeCard !== null ? cardDetails[challengeCard]?.name : 'N/A'}】能帶來何種平衡視角。\n\n🔄 **動態平衡練習**: ${overallHarmony ? `您的星座與塔羅牌組高度協調。為了全面發展，請有意識地探索塔羅牌中與您星座較不相關的能量，例如若您火象重，可多練習水象的耐心與同理。` : `擁抱星座與塔羅牌組之間的“創意張力”。它們的差異是您內在“煉金術”的原料，能在對比中激發創新的力量和更完整的自我認知。`}`
             };
           };
-
 
           const handleAnalyze = () => {
             if (!birthDate) {
@@ -1436,15 +1361,16 @@
             const details = cardDetails[cardId];
             
             return (
-              <div className={`${bgColor} rounded-lg p-4 shadow-md border-l-4 ${borderColor} transition-all duration-300`}>
-                <div className="relative mb-3">
-                  <img src={sharedGetCardImagePath(cardId)} alt={details.name} className="w-full max-w-[120px] mx-auto rounded-lg shadow-md object-cover border-2 border-white" onError={(e) => e.target.style.display = 'none'} loading="lazy" width="120" height="200" />
+              <div className={`${bgColor} rounded-lg p-4 shadow-md border-l-4 ${borderColor} transition-all duration-300 flex flex-col justify-between h-full`}>
+                <div>
+                    <div className="flex items-center gap-2 mb-2">{icon}<h3 className={`font-semibold ${textColor}`}>{title}</h3></div>
+                    <div className={`text-xl font-bold ${textColor} mb-1`}>{cardId} - {details.name}</div>
+                    <p className={`text-sm font-semibold ${textColor} mb-2`}>{details.shortMeaning}</p>
+                    {description && <p className={`text-xs ${textColor} opacity-80`}>{description}</p>}
                 </div>
-                
-                <div className="flex items-center gap-2 mb-2">{icon}<h3 className={`font-semibold ${textColor}`}>{title}</h3></div>
-                <div className={`text-xl font-bold ${textColor} mb-1`}>{cardId} - {details.name}</div>
-                <p className={`text-sm font-semibold ${textColor} mb-2`}>{details.shortMeaning}</p>
-                {description && <p className={`text-xs ${textColor} opacity-80`}>{description}</p>}
+                 <div className="mt-3">
+                  <img src={sharedGetCardImagePath(cardId)} alt={details.name} className="w-full max-w-[100px] mx-auto rounded-lg shadow-md object-cover border-2 border-white" onError={(e) => e.target.style.display = 'none'} loading="lazy" width="100" height="167" />
+                </div>
               </div>
             );
           };
@@ -1489,17 +1415,19 @@
                     </div>
                     <div className="bg-white rounded-lg p-6 shadow-md">
                       <h3 className="text-xl font-bold text-purple-800 mb-4 flex items-center gap-2">🌟 您的塔羅生命牌組</h3>
-                      <div className="grid grid-cols-1 gap-3">
-                        <CardDisplay icon={<Hash className="w-4 h-4 text-purple-600" />} title="靈魂牌" cardId={results.tarotCards.soulCard} bgColor="bg-purple-50" textColor="text-purple-900" borderColor="border-purple-500" description="您的核心本質與最高使命" />
-                        {results.tarotCards.personalityCard !== results.tarotCards.soulCard && (
-                          <CardDisplay icon={<User className="w-4 h-4 text-pink-600" />} title="個性牌" cardId={results.tarotCards.personalityCard} bgColor="bg-pink-50" textColor="text-pink-900" borderColor="border-pink-500" description="您的外在表現與學習課題" />
-                        )}
-                        {results.tarotCards.challengeCard !== null && (
-                          <CardDisplay icon={<TargetIcon className="w-4 h-4 text-indigo-600" />} title="挑戰牌" cardId={results.tarotCards.challengeCard} bgColor="bg-indigo-50" textColor="text-indigo-900" borderColor="border-indigo-500" description="需要整合的互補潛能與成長點" />
-                        )}
-                        {results.tarotCards.giftCard !== null && (
-                          <CardDisplay icon={<Gift className="w-4 h-4 text-yellow-600" />} title="天賦牌" cardId={results.tarotCards.giftCard} bgColor="bg-yellow-50" textColor="text-yellow-900" borderColor="border-yellow-500" description="太陽三重奏的核心天賦能量" />
-                        )}
+                      <div className="grid grid-cols-1 gap-3 h-full">
+                        <div className="grid grid-cols-2 gap-3">
+                           <CardDisplay icon={<Hash className="w-4 h-4 text-purple-600" />} title="靈魂牌" cardId={results.tarotCards.soulCard} bgColor="bg-purple-50" textColor="text-purple-900" borderColor="border-purple-500" description="核心本質" />
+                           <CardDisplay icon={<User className="w-4 h-4 text-pink-600" />} title="個性牌" cardId={results.tarotCards.personalityCard} bgColor="bg-pink-50" textColor="text-pink-900" borderColor="border-pink-500" description="外在課題" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                            {results.tarotCards.challengeCard !== null && (
+                              <CardDisplay icon={<TargetIcon className="w-4 h-4 text-indigo-600" />} title="挑戰牌" cardId={results.tarotCards.challengeCard} bgColor="bg-indigo-50" textColor="text-indigo-900" borderColor="border-indigo-500" description="整合潛能" />
+                            )}
+                            {results.tarotCards.giftCard !== null && (
+                              <CardDisplay icon={<Gift className="w-4 h-4 text-yellow-600" />} title="天賦牌" cardId={results.tarotCards.giftCard} bgColor="bg-yellow-50" textColor="text-yellow-900" borderColor="border-yellow-500" description="創造動力" />
+                            )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1590,7 +1518,14 @@
         // Global error handler to catch any uncaught errors
         window.addEventListener('error', (event) => {
             console.error('Global error caught:', event.error);
-            alert(`應用程序錯誤: ${event.error.message}`);
+            const errorContainer = document.getElementById('root');
+            if(errorContainer) {
+                errorContainer.innerHTML = `<div style="padding: 2rem; text-align: center; background-color: #fdd; border: 1px solid #f00; border-radius: 8px; margin: 2rem;">
+                    <h2 style="color: #c00; font-size: 1.5rem;">應用程式發生錯誤</h2>
+                    <p style="margin-top: 1rem;">很抱歉，程式出現了一些問題，請嘗試刷新頁面。</p>
+                    <p style="margin-top: 0.5rem; font-family: monospace; font-size: 0.8rem; color: #555;">錯誤訊息: ${event.error.message}</p>
+                </div>`;
+            }
         });
     </script>
 </body>
