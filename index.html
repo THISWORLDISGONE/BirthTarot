@@ -337,9 +337,7 @@
           if (cardId === null || cardId === undefined) return '';
           const fileName = cardFileNames[cardId];
           if (!fileName) return '';
-          // Using a placeholder service for reliable image loading
-          return `https://via.placeholder.com/150x250.png/9370db/ffffff?text=${cardDetails[cardId]?.name || 'Card'}`;
-          // return `./Tarot Cards/${fileName}`; // Keep this if you have local images
+          return `./Tarot Cards/${fileName}`;
         };
 
         // --- TAROT BIRTH CARDS CALCULATOR (Mary K. Greer System with Challenge Card) ---
