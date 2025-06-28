@@ -198,6 +198,7 @@
 
         /**
          * Calculates fortune cards based on the user's specific rules.
+         * CORRECTED LOGIC: All numbers (year, month, day) must have their digits summed individually.
          */
         const sharedCalculateFortuneCards = (birthDate, targetDate) => {
             if (!birthDate || !targetDate) return { yearlyCard: null, monthlyCard: null, cycleInfo: null, steps: { yearly: [], monthly: [] } };
@@ -206,36 +207,53 @@
             const cycleInfo = getCycleDateRanges(birthDate, targetDate);
             if (!cycleInfo.yearly.start) return { yearlyCard: null, monthlyCard: null, cycleInfo: null, steps: { yearly: [], monthly: [] } };
             
-            // --- Yearly Card Calculation (User's Rule) ---
+            const getCardName = (id) => cardDetails[id]?.name || '未知';
+
+            // --- Yearly Card Calculation (Corrected Rule) ---
             const yearlySteps = [];
             const cycleStartYear = cycleInfo.yearly.start.getFullYear();
             
-            const yearlySum = sharedSumDigits(cycleStartYear) + bMonth + bDay;
+            const sumYearDigits = sharedSumDigits(cycleStartYear);
+            const sumMonthDigits = sharedSumDigits(bMonth);
+            const sumDayDigits = sharedSumDigits(bDay);
+
+            const yearlySum = sumYearDigits + sumMonthDigits + sumDayDigits;
             const yearlyCard = sharedReduceToSingleDigit(yearlySum);
             
+            const yearDigitsStr = cycleStartYear.toString().split('').join(' + ');
+            const monthDigitsStr = bMonth.toString().split('').join(' + ');
+            const dayDigitsStr = bDay.toString().split('').join(' + ');
+            
             yearlySteps.push(`1. 流年週期從生日算起，當前流年始於 ${cycleStartYear}年${bMonth}月${bDay}日`);
-            yearlySteps.push(`2. 計算公式: (流年年份數字和) + (出生月) + (出生日)`);
-            yearlySteps.push(`   => ${cycleStartYear.toString().split('').join(' + ')} + ${bMonth} + ${bDay} = ${yearlySum}`);
+            yearlySteps.push(`2. 計算公式: (流年年份各數字和) + (出生月各數字和) + (出生日各數字和)`);
+            yearlySteps.push(`   => (${yearDigitsStr}) + (${monthDigitsStr}) + (${dayDigitsStr}) = ${yearlySum}`);
             if (yearlySum > 9) {
                  yearlySteps.push(`3. 總和為雙位數，相加至個位: ${yearlySum.toString().split('').join(' + ')} = ${yearlyCard}`);
             }
-            yearlySteps.push(`4. 您的年運牌為: ${yearlyCard} (${cardDetails[yearlyCard]?.name || '未知'})`);
+            yearlySteps.push(`4. 您的年運牌為: ${yearlyCard} (${getCardName(yearlyCard)})`);
 
 
-            // --- Monthly Card Calculation (User's Rule) ---
+            // --- Monthly Card Calculation (Corrected Rule) ---
             const monthlySteps = [];
             const targetMonth = targetDate.getMonth() + 1;
-            const sumOfBirthYear = sharedSumDigits(bYear);
+            
+            const sumBirthYearDigits = sharedSumDigits(bYear);
+            const sumTargetMonthDigits = sharedSumDigits(targetMonth);
+            const sumBirthDayDigits = sharedSumDigits(bDay);
 
-            const monthlySum = sumOfBirthYear + targetMonth + bDay;
+            const monthlySum = sumBirthYearDigits + sumTargetMonthDigits + sumBirthDayDigits;
             const monthlyCard = sharedReduceToSingleDigit(monthlySum);
 
-            monthlySteps.push(`1. 計算公式: (出生年份數字和) + (目標月) + (出生日)`);
-            monthlySteps.push(`   => ${bYear.toString().split('').join(' + ')} + ${targetMonth} + ${bDay} = ${monthlySum}`);
+            const birthYearDigitsStr = bYear.toString().split('').join(' + ');
+            const targetMonthDigitsStr = targetMonth.toString().split('').join(' + ');
+            const birthDayDigitsStr = bDay.toString().split('').join(' + ');
+
+            monthlySteps.push(`1. 計算公式: (出生年份各數字和) + (目標月各數字和) + (出生日各數字和)`);
+            monthlySteps.push(`   => (${birthYearDigitsStr}) + (${targetMonthDigitsStr}) + (${birthDayDigitsStr}) = ${monthlySum}`);
             if (monthlySum > 9) {
                 monthlySteps.push(`2. 總和為雙位數，相加至個位: ${monthlySum.toString().split('').join(' + ')} = ${monthlyCard}`);
             }
-            monthlySteps.push(`3. 您的月運牌為: ${monthlyCard} (${cardDetails[monthlyCard]?.name || '未知'})`);
+            monthlySteps.push(`3. 您的月運牌為: ${monthlyCard} (${getCardName(monthlyCard)})`);
 
             return {
                 yearlyCard: yearlyCard,
@@ -842,24 +860,24 @@
                     <h3 className="text-xl font-semibold text-purple-700 mb-2">基礎原理</h3>
                     <div className="pl-4 border-l-4 border-purple-300">
                         <p><strong>核心概念:</strong> 此計算器採用您指定的個人化計算規則。流年（年運）週期從您當年生日開始，到次年生日結束。流月（月運）則根據您的出生年份和目標月份計算。</p>
-                        <p><strong>數學基礎:</strong> 主要運用數字根（Digit Sum）原理，將日期數字相加，並將結果化簡為一個個位數（1-9），對應到塔羅牌的前10張牌（0-9）。</p>
+                        <p><strong>數學基礎:</strong> 採用數字根（Digit Sum）原理，將日期中的所有數字（年、月、日）拆開後相加，並將結果化簡為一個個位數（1-9），對應到塔羅牌的前10張牌（0-9）。</p>
                     </div>
                 </section>
                 <section>
                     <h3 className="text-xl font-semibold text-purple-700 mb-2">年運卡計算方法 (您的規則)</h3>
                     <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-800 space-y-2">
                         <p><strong>第一步：確定流年起始年份</strong><br/><span>以您的生日為界，確定當前流年週期的起始年份。例如，若您生日是8月5日，在2024年6月查詢時，流年起始年是2023年；在2024年9月查詢時，流年起始年是2024年。</span></p>
-                        <p><strong>第二步：計算總和</strong><br/><code>年運數值 = (流年起始年份的各數字之和) + (您的出生月份) + (您的出生日期)</code></p>
+                        <p><strong>第二步：計算總和</strong><br/><code>年運數值 = (流年起始年份各數字之和) + (您的出生月份各數字之和) + (您的出生日期各數字之和)</code></p>
                         <p><strong>第三步：化簡至個位數</strong><br/><span>若總和為兩位數，則將其各位數字相加，直到得到一個個位數。此即為您的年運牌號。</span></p>
-                        <p><strong>範例 (按您提供):</strong> 生日2000/8/5，計算2024-2025年運。流年起始年為2024。<br/><code>(2+0+2+4) + 8 + 5 = 8 + 8 + 5 = 21</code> → <code>2+1 = 3</code>。年運牌為 3號 皇后。</p>
+                        <p><strong>範例:</strong> 生日 1995年11月19日，計算2024-2025年運。流年起始年為2024。<br/><code>(2+0+2+4) + (1+1) + (1+9) = 8 + 2 + 10 = 20</code> → <code>2+0 = 2</code>。年運牌為 2號 女祭司。</p>
                     </div>
                 </section>
                 <section>
                     <h3 className="text-xl font-semibold text-purple-700 mb-2">月運卡計算方法 (您的規則)</h3>
                     <div className="bg-green-50 rounded-lg p-4 text-sm text-green-800 space-y-2">
-                        <p><strong>第一步：計算總和</strong><br/><code>月運數值 = (您的出生年份的各數字之和) + (您查詢的目標月份) + (您的出生日期)</code></p>
+                        <p><strong>第一步：計算總和</strong><br/><code>月運數值 = (您的出生年份各數字之和) + (您查詢的目標月份各數字之和) + (您的出生日期各數字之和)</code></p>
                         <p><strong>第二步：化簡至個位數</strong><br/><span>若總和為兩位數，則將其各位數字相加，直到得到一個個位數。此即為您的月運牌號。</span></p>
-                        <p><strong>範例 (按您提供):</strong> 生日2000/8/5，計算7月月運。<br/><code>(2+0+0+0) + 7 + 5 = 2 + 7 + 5 = 14</code> → <code>1+4 = 5</code>。7月月運牌為 5號 教皇。</p>
+                        <p><strong>範例:</strong> 生日 1995年11月19日，計算12月月運。<br/><code>(1+9+9+5) + (1+2) + (1+9) = 24 + 3 + 10 = 37</code> → <code>3+7 = 10</code> → <code>1+0 = 1</code>。12月月運牌為 1號 魔術師。</p>
                     </div>
                 </section>
              </div>
@@ -1309,4 +1327,3 @@
         });
     </script>
 </body>
-</html>
