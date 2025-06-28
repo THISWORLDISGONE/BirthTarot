@@ -197,37 +197,51 @@
         };
 
         /**
-         * Calculates fortune cards based on the complex system from Image 1.
+         * Calculates fortune cards based on the user's specific rules.
          */
         const sharedCalculateFortuneCards = (birthDate, targetDate) => {
-            if (!birthDate || !targetDate) return { yearlyCard: null, monthlyCard: null, cycleInfo: null };
+            if (!birthDate || !targetDate) return { yearlyCard: null, monthlyCard: null, cycleInfo: null, steps: { yearly: [], monthly: [] } };
             
             const [bYear, bMonth, bDay] = birthDate.split('-').map(Number);
             const cycleInfo = getCycleDateRanges(birthDate, targetDate);
-            if (!cycleInfo.yearly.start) return { yearlyCard: null, monthlyCard: null, cycleInfo: null };
+            if (!cycleInfo.yearly.start) return { yearlyCard: null, monthlyCard: null, cycleInfo: null, steps: { yearly: [], monthly: [] } };
+            
+            // --- Yearly Card Calculation (User's Rule) ---
+            const yearlySteps = [];
+            const cycleStartYear = cycleInfo.yearly.start.getFullYear();
+            
+            const yearlySum = sharedSumDigits(cycleStartYear) + bMonth + bDay;
+            const yearlyCard = sharedReduceToSingleDigit(yearlySum);
+            
+            yearlySteps.push(`1. 流年週期從生日算起，當前流年始於 ${cycleStartYear}年${bMonth}月${bDay}日`);
+            yearlySteps.push(`2. 計算公式: (流年年份數字和) + (出生月) + (出生日)`);
+            yearlySteps.push(`   => ${cycleStartYear.toString().split('').join(' + ')} + ${bMonth} + ${bDay} = ${yearlySum}`);
+            if (yearlySum > 9) {
+                 yearlySteps.push(`3. 總和為雙位數，相加至個位: ${yearlySum.toString().split('').join(' + ')} = ${yearlyCard}`);
+            }
+            yearlySteps.push(`4. 您的年運牌為: ${yearlyCard} (${cardDetails[yearlyCard]?.name || '未知'})`);
 
-            // Yearly card calculation (System from Image 1)
-            const personalBase = sharedSumDigits(bYear) + bMonth + sharedSumDigits(bDay);
-            const yearlyValue = personalBase + sharedSumDigits(cycleInfo.yearly.start.getFullYear());
-            let yearlyCardRaw = (yearlyValue - 1) % 22;
-            yearlyCardRaw = (yearlyCardRaw < 0) ? yearlyCardRaw + 22 : yearlyCardRaw;
-            const yearlyCardId = yearlyCardRaw;
-            
-            // Monthly card calculation (System from Image 1)
-            const yearlyCardForCalc = yearlyCardId === 0 ? 22 : yearlyCardId;
-            const bDaySimplified = sharedReduceToSingleDigit(bDay);
-            const monthlyAdjustment = bMonth + bDaySimplified;
-            const targetMonthNumber = targetDate.getMonth() + 1;
-            const monthlyValue = yearlyCardForCalc + targetMonthNumber + monthlyAdjustment;
-            
-            let monthlyCardRaw = (monthlyValue - 1) % 22;
-            monthlyCardRaw = (monthlyCardRaw < 0) ? monthlyCardRaw + 22 : monthlyCardRaw;
-            const monthlyCardId = monthlyCardRaw;
-            
+
+            // --- Monthly Card Calculation (User's Rule) ---
+            const monthlySteps = [];
+            const targetMonth = targetDate.getMonth() + 1;
+            const sumOfBirthYear = sharedSumDigits(bYear);
+
+            const monthlySum = sumOfBirthYear + targetMonth + bDay;
+            const monthlyCard = sharedReduceToSingleDigit(monthlySum);
+
+            monthlySteps.push(`1. 計算公式: (出生年份數字和) + (目標月) + (出生日)`);
+            monthlySteps.push(`   => ${bYear.toString().split('').join(' + ')} + ${targetMonth} + ${bDay} = ${monthlySum}`);
+            if (monthlySum > 9) {
+                monthlySteps.push(`2. 總和為雙位數，相加至個位: ${monthlySum.toString().split('').join(' + ')} = ${monthlyCard}`);
+            }
+            monthlySteps.push(`3. 您的月運牌為: ${monthlyCard} (${cardDetails[monthlyCard]?.name || '未知'})`);
+
             return {
-                yearlyCard: yearlyCardId,
-                monthlyCard: monthlyCardId,
-                cycleInfo: cycleInfo
+                yearlyCard: yearlyCard,
+                monthlyCard: monthlyCard,
+                cycleInfo: cycleInfo,
+                steps: { yearly: yearlySteps, monthly: monthlySteps }
             };
         };
 
@@ -810,42 +824,13 @@
             }
 
             const targetDate = new Date(targetYear, targetMonth - 1, 1);
-            const { yearlyCard, monthlyCard, cycleInfo } = sharedCalculateFortuneCards(birthDate, targetDate);
-            
-            const [bYear, bMonth, bDay] = birthDate.split('-').map(Number);
-            
-            // Generate Yearly Steps
-            const yearlySteps = [];
-            const personalBase = sharedSumDigits(bYear) + bMonth + sharedSumDigits(bDay);
-            yearlySteps.push(`1. 個人基數 = (出生年和) + (出生月) + (出生日和)`);
-            yearlySteps.push(`   = (${sharedSumDigits(bYear)}) + (${bMonth}) + (${sharedSumDigits(bDay)}) = ${personalBase}`);
-            const cycleStartYear = cycleInfo.yearly.start.getFullYear();
-            const yearlyValue = personalBase + sharedSumDigits(cycleStartYear);
-            yearlySteps.push(`2. 年運數值 = 個人基數 + 流年起始年和`);
-            yearlySteps.push(`   = ${personalBase} + ${sharedSumDigits(cycleStartYear)} = ${yearlyValue}`);
-            yearlySteps.push(`3. 年運卡號 = (年運數值 - 1) % 22`);
-            yearlySteps.push(`   = (${yearlyValue} - 1) % 22 = ${yearlyCard}`);
-
-            // Generate Monthly Steps
-            const monthlySteps = [];
-            const yearlyCardForCalc = yearlyCard === 0 ? 22 : yearlyCard;
-            monthlySteps.push(`1. 從年運卡數值開始 (0號愚者作22): ${yearlyCardForCalc}`);
-            const bDaySimplified = sharedReduceToSingleDigit(bDay);
-            monthlySteps.push(`2. 出生日化簡值: ${bDay} -> ${bDaySimplified}`);
-            const monthlyAdjustment = bMonth + bDaySimplified;
-            monthlySteps.push(`3. 個人月份調整值 = 出生月 + 出生日化簡值`);
-            monthlySteps.push(`   = ${bMonth} + ${bDaySimplified} = ${monthlyAdjustment}`);
-            const monthlyValue = yearlyCardForCalc + parseInt(targetMonth, 10) + monthlyAdjustment;
-            monthlySteps.push(`4. 月運數值 = 年運卡值 + 目標月 + 調整值`);
-            monthlySteps.push(`   = ${yearlyCardForCalc} + ${targetMonth} + ${monthlyAdjustment} = ${monthlyValue}`);
-            monthlySteps.push(`5. 月運卡號 = (月運數值 - 1) % 22`);
-            monthlySteps.push(`   = (${monthlyValue} - 1) % 22 = ${monthlyCard}`);
+            const { yearlyCard, monthlyCard, cycleInfo, steps } = sharedCalculateFortuneCards(birthDate, targetDate);
             
             setResult({
               yearlyCard,
               monthlyCard,
               cycleInfo,
-              steps: { yearly: yearlySteps, monthly: monthlySteps }
+              steps: steps
             });
             setShowProcess(false);
           };
@@ -856,24 +841,25 @@
                 <section>
                     <h3 className="text-xl font-semibold text-purple-700 mb-2">基礎原理</h3>
                     <div className="pl-4 border-l-4 border-purple-300">
-                        <p><strong>核心概念:</strong> 此計算器採用基於個人生命週期的計算方式。流年（年運）週期從您當年生日開始，到次年生日結束，而非日曆年。流月（月運）週期則是在此流年週期內的逐月推進。</p>
-                        <p><strong>數學基礎:</strong> 主要運用數字化簡原理（將複雜數字相加化簡）與循環映射（利用模運算建立時間與卡牌的對應關係），並以個人出生日期作為獨特的個人基數。</p>
+                        <p><strong>核心概念:</strong> 此計算器採用您指定的個人化計算規則。流年（年運）週期從您當年生日開始，到次年生日結束。流月（月運）則根據您的出生年份和目標月份計算。</p>
+                        <p><strong>數學基礎:</strong> 主要運用數字根（Digit Sum）原理，將日期數字相加，並將結果化簡為一個個位數（1-9），對應到塔羅牌的前10張牌（0-9）。</p>
                     </div>
                 </section>
                 <section>
-                    <h3 className="text-xl font-semibold text-purple-700 mb-2">年運卡計算方法</h3>
+                    <h3 className="text-xl font-semibold text-purple-700 mb-2">年運卡計算方法 (您的規則)</h3>
                     <div className="bg-blue-50 rounded-lg p-4 text-sm text-blue-800 space-y-2">
-                        <p><strong>第一步：計算個人基數</strong><br/><code>個人基數 = (出生年各位數字之和) + (出生月) + (出生日各位數字之和)</code></p>
-                        <p><strong>第二步：結合流年起始年份</strong><br/><code>年運數值 = 個人基數 + (流年起始年份各位數字之和)</code></p>
-                        <p><strong>第三步：化簡至塔羅範圍 (0-21)</strong><br/><code>年運卡號 = (年運數值 - 1) % 22</code></p>
+                        <p><strong>第一步：確定流年起始年份</strong><br/><span>以您的生日為界，確定當前流年週期的起始年份。例如，若您生日是8月5日，在2024年6月查詢時，流年起始年是2023年；在2024年9月查詢時，流年起始年是2024年。</span></p>
+                        <p><strong>第二步：計算總和</strong><br/><code>年運數值 = (流年起始年份的各數字之和) + (您的出生月份) + (您的出生日期)</code></p>
+                        <p><strong>第三步：化簡至個位數</strong><br/><span>若總和為兩位數，則將其各位數字相加，直到得到一個個位數。此即為您的年運牌號。</span></p>
+                        <p><strong>範例 (按您提供):</strong> 生日2000/8/5，計算2024-2025年運。流年起始年為2024。<br/><code>(2+0+2+4) + 8 + 5 = 8 + 8 + 5 = 21</code> → <code>2+1 = 3</code>。年運牌為 3號 皇后。</p>
                     </div>
                 </section>
                 <section>
-                    <h3 className="text-xl font-semibold text-purple-700 mb-2">月運卡計算方法</h3>
+                    <h3 className="text-xl font-semibold text-purple-700 mb-2">月運卡計算方法 (您的規則)</h3>
                     <div className="bg-green-50 rounded-lg p-4 text-sm text-green-800 space-y-2">
-                        <p><strong>第一步：獲得年運卡數值</strong><br/><span>使用上述方法計算出的年運卡號碼（0-21）。若為0(愚者)，計算時用22。</span></p>
-                        <p><strong>第二步：計算月份調整值</strong><br/><code>個人月份調整值 = (出生月) + (出生日化簡值)</code></p>
-                        <p><strong>第三步：結合目標月份</strong><br/><code>月運數值 = 年運卡數值 + 目標月份 + 個人月份調整值</code><br/><code>月運卡號 = (月運數值 - 1) % 22</code></p>
+                        <p><strong>第一步：計算總和</strong><br/><code>月運數值 = (您的出生年份的各數字之和) + (您查詢的目標月份) + (您的出生日期)</code></p>
+                        <p><strong>第二步：化簡至個位數</strong><br/><span>若總和為兩位數，則將其各位數字相加，直到得到一個個位數。此即為您的月運牌號。</span></p>
+                        <p><strong>範例 (按您提供):</strong> 生日2000/8/5，計算7月月運。<br/><code>(2+0+0+0) + 7 + 5 = 2 + 7 + 5 = 14</code> → <code>1+4 = 5</code>。7月月運牌為 5號 教皇。</p>
                     </div>
                 </section>
              </div>
@@ -1252,7 +1238,7 @@
 
         // --- MAIN APP COMPONENT ---
         const App = () => {
-          const [activeCalculator, setActiveCalculator] = useState('comprehensive'); // 'comprehensive', 'birth', 'compatibility', 'fortune'
+          const [activeCalculator, setActiveCalculator] = useState('fortune'); // Default to fortune calculator as requested
 
           const navButtonBaseClass = "px-3 py-2 sm:px-6 sm:py-3 rounded-lg font-semibold transition-all text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-offset-2";
           const activeNavButtonClass = "bg-purple-600 text-white shadow-lg transform scale-105 focus:ring-purple-500";
